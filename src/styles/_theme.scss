@@ -1,0 +1,118 @@
+// Angular Material M3 Theme Configuration
+// Primary   : #78909C (Blue-Grey)
+// Tertiary  : #CB6D51 (Terracotta)
+// Dark surf : #263238 (Blue-Grey 900)
+@use '@angular/material' as mat;
+
+// ─── Core styles (ripple, overlay, etc.) ─────────────────────────────────────
+@include mat.core();
+
+// ─── Custom tonal palettes ────────────────────────────────────────────────────
+// Palettes are M3 tonal-palette maps (tone 0–100).
+// Generated from source colors via HCT color space approximation.
+
+// Primary: #78909C  (hue ≈ 205°, chroma ≈ 13, tone ≈ 56)
+$_primary-palette: (
+  0:   #000000,
+  10:  #0d1d27,
+  20:  #223242,
+  25:  #2c3d4d,
+  30:  #384959,
+  35:  #435564,
+  40:  #506070,
+  50:  #697989,
+  60:  #8393a3,
+  70:  #9daebe,
+  80:  #b8c9da,
+  90:  #d4e5f6,
+  95:  #e7f2ff,
+  98:  #f5faff,
+  99:  #f9fcff,
+  100: #ffffff,
+);
+
+// Tertiary / Accent: #CB6D51  (hue ≈ 19°, chroma ≈ 40, tone ≈ 52)
+$_tertiary-palette: (
+  0:   #000000,
+  10:  #3b0900,
+  20:  #611500,
+  25:  #742000,
+  30:  #882b00,
+  35:  #9d3700,
+  40:  #b24300,
+  50:  #df5b18,
+  60:  #ff7c45,
+  70:  #ff9e72,
+  80:  #ffb99d,
+  90:  #ffdacb,
+  95:  #ffece4,
+  98:  #fff8f6,
+  99:  #fffbff,
+  100: #ffffff,
+);
+
+// ─── Theme instances ──────────────────────────────────────────────────────────
+$light-theme: mat.define-theme((
+  color: (
+    theme-type:  light,
+    primary:     $_primary-palette,
+    tertiary:    $_tertiary-palette,
+  ),
+  typography: (
+    brand-family:   'Roboto, sans-serif',
+    plain-family:   'Roboto, sans-serif',
+    bold-weight:    700,
+    medium-weight:  500,
+    regular-weight: 400,
+  ),
+  density: (
+    scale: 0,
+  ),
+));
+
+$dark-theme: mat.define-theme((
+  color: (
+    theme-type:  dark,
+    primary:     $_primary-palette,
+    tertiary:    $_tertiary-palette,
+  ),
+  typography: (
+    brand-family:   'Roboto, sans-serif',
+    plain-family:   'Roboto, sans-serif',
+    bold-weight:    700,
+    medium-weight:  500,
+    regular-weight: 400,
+  ),
+  density: (
+    scale: 0,
+  ),
+));
+
+// ─── Apply themes ─────────────────────────────────────────────────────────────
+html {
+  @include mat.all-component-themes($light-theme);
+
+  @media (prefers-color-scheme: dark) {
+    @include mat.all-component-colors($dark-theme);
+
+    // ── Custom dark-mode surface: #263238 ──────────────────────────────────
+    // Override the auto-generated surface tokens with the requested colour
+    // and a coherent set of tonal variants derived from it.
+    --mat-sys-surface:                    #263238;
+    --mat-sys-surface-dim:                #1b262b;
+    --mat-sys-surface-bright:             #2e3d45;
+    --mat-sys-surface-container-lowest:   #17222a;
+    --mat-sys-surface-container-low:      #202e36;
+    --mat-sys-surface-container:          #263238;  // base surface
+    --mat-sys-surface-container-high:     #2c3940;
+    --mat-sys-surface-container-highest:  #33424a;
+    --mat-sys-background:                 #1b262b;
+    --mat-sys-on-background:              #cdd7dc;
+    --mat-sys-on-surface:                 #cdd7dc;
+    --mat-sys-on-surface-variant:         #a0adb3;
+    --mat-sys-outline:                    #6c7a80;
+    --mat-sys-outline-variant:            #3a484f;
+    --mat-sys-inverse-surface:            #cdd7dc;
+    --mat-sys-inverse-on-surface:         #263238;
+  }
+}

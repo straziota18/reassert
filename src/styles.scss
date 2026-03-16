@@ -1,1 +1,16 @@
-/* You can add global styles to this file, and also import other style files */
+// Import the Angular Material M3 theme (palettes, typography, density)
+@use 'styles/theme';
+
+// ─── Global resets & base styles ─────────────────────────────────────────────
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: Roboto, sans-serif;
+}
