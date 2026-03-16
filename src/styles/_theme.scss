@@ -1,118 +1,229 @@
-// Angular Material M3 Theme Configuration
-// Primary   : #78909C (Blue-Grey)
-// Tertiary  : #CB6D51 (Terracotta)
-// Dark surf : #263238 (Blue-Grey 900)
+// =============================================================
+// Silver & Copper — Angular Material M3 Theme
+// Generated from Material Theme Builder export
+// Primary seed: #78909C (Silver) | Tertiary: #CB6D51 (Copper)
+// =============================================================
+
 @use '@angular/material' as mat;
 
-// ─── Core styles (ripple, overlay, etc.) ─────────────────────────────────────
+// Include Material core styles once
 @include mat.core();
 
-// ─── Custom tonal palettes ────────────────────────────────────────────────────
-// Palettes are M3 tonal-palette maps (tone 0–100).
-// Generated from source colors via HCT color space approximation.
+// -------------------------------------------------------------
+// Custom M3 Palette Definitions
+// -------------------------------------------------------------
 
-// Primary: #78909C  (hue ≈ 205°, chroma ≈ 13, tone ≈ 56)
-$_primary-palette: (
+$silver-copper-primary: (
   0:   #000000,
-  10:  #0d1d27,
-  20:  #223242,
-  25:  #2c3d4d,
-  30:  #384959,
-  35:  #435564,
-  40:  #506070,
-  50:  #697989,
-  60:  #8393a3,
-  70:  #9daebe,
-  80:  #b8c9da,
-  90:  #d4e5f6,
-  95:  #e7f2ff,
-  98:  #f5faff,
-  99:  #f9fcff,
-  100: #ffffff,
+  10:  #051E28,
+  20:  #1C333E,
+  25:  #273F49,
+  30:  #334A55,
+  35:  #3E5661,
+  40:  #4A626D,
+  50:  #637B86,
+  60:  #7C94A0,
+  70:  #96AFBB,
+  80:  #B1CAD7,
+  90:  #CDE6F4,
+  95:  #E0F4FF,
+  98:  #F3FAFF,
+  99:  #FAFCFF,
+  100: #FFFFFF,
+  contrast: (
+    0:   #FFFFFF,
+    10:  #FFFFFF,
+    20:  #FFFFFF,
+    25:  #FFFFFF,
+    30:  #FFFFFF,
+    35:  #FFFFFF,
+    40:  #FFFFFF,
+    50:  #FFFFFF,
+    60:  #000000,
+    70:  #000000,
+    80:  #000000,
+    90:  #000000,
+    95:  #000000,
+    98:  #000000,
+    99:  #000000,
+    100: #000000,
+  )
 );
 
-// Tertiary / Accent: #CB6D51  (hue ≈ 19°, chroma ≈ 40, tone ≈ 52)
-$_tertiary-palette: (
+$silver-copper-tertiary: (
   0:   #000000,
-  10:  #3b0900,
-  20:  #611500,
-  25:  #742000,
-  30:  #882b00,
-  35:  #9d3700,
-  40:  #b24300,
-  50:  #df5b18,
-  60:  #ff7c45,
-  70:  #ff9e72,
-  80:  #ffb99d,
-  90:  #ffdacb,
-  95:  #ffece4,
-  98:  #fff8f6,
-  99:  #fffbff,
-  100: #ffffff,
+  10:  #3A0A00,
+  20:  #5C1904,
+  25:  #6B240E,
+  30:  #7A2F18,
+  35:  #893A22,
+  40:  #98462D,
+  50:  #B75E43,
+  60:  #D7765A,
+  70:  #F79071,
+  80:  #FFB59F,
+  90:  #FFDBD1,
+  95:  #FFEDE8,
+  98:  #FFF8F6,
+  99:  #FFFBFF,
+  100: #FFFFFF,
+  contrast: (
+    0:   #FFFFFF,
+    10:  #FFFFFF,
+    20:  #FFFFFF,
+    25:  #FFFFFF,
+    30:  #FFFFFF,
+    35:  #FFFFFF,
+    40:  #FFFFFF,
+    50:  #FFFFFF,
+    60:  #000000,
+    70:  #000000,
+    80:  #000000,
+    90:  #000000,
+    95:  #000000,
+    98:  #000000,
+    99:  #000000,
+    100: #000000,
+  )
 );
 
-// ─── Theme instances ──────────────────────────────────────────────────────────
+// -------------------------------------------------------------
+// Light Theme
+// -------------------------------------------------------------
+
 $light-theme: mat.define-theme((
   color: (
-    theme-type:  light,
-    primary:     $_primary-palette,
-    tertiary:    $_tertiary-palette,
+    theme-type: light,
+    primary: mat.$azure-palette,     // closest M3 built-in to silver-blue
+    tertiary: mat.$orange-palette,   // closest M3 built-in to copper
   ),
   typography: (
-    brand-family:   'Roboto, sans-serif',
-    plain-family:   'Roboto, sans-serif',
-    bold-weight:    700,
-    medium-weight:  500,
-    regular-weight: 400,
+    brand-family: 'Roboto, sans-serif',
+    plain-family: 'Roboto, sans-serif',
   ),
   density: (
     scale: 0,
   ),
 ));
+
+// -------------------------------------------------------------
+// Dark Theme
+// -------------------------------------------------------------
 
 $dark-theme: mat.define-theme((
   color: (
-    theme-type:  dark,
-    primary:     $_primary-palette,
-    tertiary:    $_tertiary-palette,
+    theme-type: dark,
+    primary: mat.$azure-palette,
+    tertiary: mat.$orange-palette,
   ),
   typography: (
-    brand-family:   'Roboto, sans-serif',
-    plain-family:   'Roboto, sans-serif',
-    bold-weight:    700,
-    medium-weight:  500,
-    regular-weight: 400,
+    brand-family: 'Roboto, sans-serif',
+    plain-family: 'Roboto, sans-serif',
   ),
   density: (
     scale: 0,
   ),
 ));
 
-// ─── Apply themes ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
+// CSS Custom Properties — Light & Dark token overrides
+// These inject your exact Silver/Copper hex values from the JSON
+// -------------------------------------------------------------
+
+:root {
+  // Light mode tokens (default)
+  --mat-sys-primary:                  #106681;
+  --mat-sys-on-primary:               #FFFFFF;
+  --mat-sys-primary-container:        #BCE9FF;
+  --mat-sys-on-primary-container:     #004D63;
+
+  --mat-sys-secondary:                #4D616B;
+  --mat-sys-on-secondary:             #FFFFFF;
+  --mat-sys-secondary-container:      #D0E6F2;
+  --mat-sys-on-secondary-container:   #354A53;
+
+  --mat-sys-tertiary:                 #8F4C37;
+  --mat-sys-on-tertiary:              #FFFFFF;
+  --mat-sys-tertiary-container:       #FFDBD1;
+  --mat-sys-on-tertiary-container:    #723522;
+
+  --mat-sys-error:                    #BA1A1A;
+  --mat-sys-on-error:                 #FFFFFF;
+  --mat-sys-error-container:          #FFDAD6;
+  --mat-sys-on-error-container:       #93000A;
+
+  --mat-sys-background:               #F6FAFD;
+  --mat-sys-on-background:            #171C1F;
+  --mat-sys-surface:                  #F6FAFD;
+  --mat-sys-on-surface:               #171C1F;
+  --mat-sys-surface-variant:          #DCE4E9;
+  --mat-sys-on-surface-variant:       #40484C;
+
+  --mat-sys-outline:                  #70787D;
+  --mat-sys-outline-variant:          #C0C8CD;
+
+  --mat-sys-inverse-surface:          #2C3134;
+  --mat-sys-inverse-on-surface:       #EDF1F5;
+  --mat-sys-inverse-primary:          #8AD0EF;
+
+  --mat-sys-surface-container-lowest:  #FFFFFF;
+  --mat-sys-surface-container-low:     #F0F4F8;
+  --mat-sys-surface-container:         #EAEEF2;
+  --mat-sys-surface-container-high:    #E4E9EC;
+  --mat-sys-surface-container-highest: #DFE3E6;
+}
+
+// Dark mode — applied when .dark-theme class is on <body> or <html>
+.dark-theme {
+  --mat-sys-primary:                  #8AD0EF;
+  --mat-sys-on-primary:               #003545;
+  --mat-sys-primary-container:        #004D63;
+  --mat-sys-on-primary-container:     #BCE9FF;
+
+  --mat-sys-secondary:                #B4CAD5;
+  --mat-sys-on-secondary:             #1E333C;
+  --mat-sys-secondary-container:      #354A53;
+  --mat-sys-on-secondary-container:   #D0E6F2;
+
+  --mat-sys-tertiary:                 #FFB59F;
+  --mat-sys-on-tertiary:              #561F0F;
+  --mat-sys-tertiary-container:       #723522;
+  --mat-sys-on-tertiary-container:    #FFDBD1;
+
+  --mat-sys-error:                    #FFB4AB;
+  --mat-sys-on-error:                 #690005;
+  --mat-sys-error-container:          #93000A;
+  --mat-sys-on-error-container:       #FFDAD6;
+
+  --mat-sys-background:               #0F1417;
+  --mat-sys-on-background:            #DFE3E6;
+  --mat-sys-surface:                  #0F1417;
+  --mat-sys-on-surface:               #DFE3E6;
+  --mat-sys-surface-variant:          #40484C;
+  --mat-sys-on-surface-variant:       #C0C8CD;
+
+  --mat-sys-outline:                  #8A9297;
+  --mat-sys-outline-variant:          #40484C;
+
+  --mat-sys-inverse-surface:          #DFE3E6;
+  --mat-sys-inverse-on-surface:       #2C3134;
+  --mat-sys-inverse-primary:          #106681;
+
+  --mat-sys-surface-container-lowest:  #0A0F11;
+  --mat-sys-surface-container-low:     #171C1F;
+  --mat-sys-surface-container:         #1B2023;
+  --mat-sys-surface-container-high:    #262B2D;
+  --mat-sys-surface-container-highest: #303538;
+}
+
+// -------------------------------------------------------------
+// Apply themes to the app
+// -------------------------------------------------------------
+
 html {
   @include mat.all-component-themes($light-theme);
+}
 
-  @media (prefers-color-scheme: dark) {
-    @include mat.all-component-colors($dark-theme);
-
-    // ── Custom dark-mode surface: #263238 ──────────────────────────────────
-    // Override the auto-generated surface tokens with the requested colour
-    // and a coherent set of tonal variants derived from it.
-    --mat-sys-surface:                    #263238;
-    --mat-sys-surface-dim:                #1b262b;
-    --mat-sys-surface-bright:             #2e3d45;
-    --mat-sys-surface-container-lowest:   #17222a;
-    --mat-sys-surface-container-low:      #202e36;
-    --mat-sys-surface-container:          #263238;  // base surface
-    --mat-sys-surface-container-high:     #2c3940;
-    --mat-sys-surface-container-highest:  #33424a;
-    --mat-sys-background:                 #1b262b;
-    --mat-sys-on-background:              #cdd7dc;
-    --mat-sys-on-surface:                 #cdd7dc;
-    --mat-sys-on-surface-variant:         #a0adb3;
-    --mat-sys-outline:                    #6c7a80;
-    --mat-sys-outline-variant:            #3a484f;
-    --mat-sys-inverse-surface:            #cdd7dc;
-    --mat-sys-inverse-on-surface:         #263238;
-  }
+.dark-theme {
+  @include mat.all-component-colors($dark-theme);
 }

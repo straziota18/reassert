@@ -1,0 +1,113 @@
+// =============================================================
+// App Shell Styles — Silver & Copper theme
+// =============================================================
+
+// ── Full-height container ─────────────────────────────────────
+.app-container {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+// ── Sidenav ───────────────────────────────────────────────────
+.app-sidenav {
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidenav-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 16px 16px;
+
+  .sidenav-logo {
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+    color: var(--mat-sys-primary);
+  }
+
+  .sidenav-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--mat-sys-on-surface);
+  }
+}
+
+// Active nav item highlight
+.active-nav-item {
+  background-color: var(--mat-sys-primary-container) !important;
+  color: var(--mat-sys-on-primary-container) !important;
+  border-radius: 28px;
+
+  mat-icon {
+    color: var(--mat-sys-on-primary-container) !important;
+  }
+}
+
+// Upload action item — subtle copper accent
+.action-item:not(.active-nav-item) {
+  color: var(--mat-sys-tertiary);
+
+  mat-icon {
+    color: var(--mat-sys-tertiary);
+  }
+}
+
+// Dark mode footer
+.sidenav-footer {
+  margin-top: auto;
+
+  .dark-mode-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    font-size: 0.9rem;
+    color: var(--mat-sys-on-surface-variant);
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    mat-slide-toggle {
+      margin-left: auto;
+    }
+  }
+}
+
+// ── Toolbar ───────────────────────────────────────────────────
+.app-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+
+  .toolbar-title {
+    margin-left: 8px;
+    font-size: 1.1rem;
+    font-weight: 500;
+  }
+
+  .toolbar-spacer {
+    flex: 1 1 auto;
+  }
+}
+
+// ── Main content area ─────────────────────────────────────────
+.app-content {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+
+  // Tighter padding on mobile
+  @media (max-width: 599px) {
+    padding: 16px;
+  }
+}

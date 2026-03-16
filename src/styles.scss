@@ -1,5 +1,7 @@
 // Import the Angular Material M3 theme (palettes, typography, density)
 @use 'styles/theme';
+@use '@angular/material' as mat;
+
 
 // ─── Global resets & base styles ─────────────────────────────────────────────
 *,
@@ -13,4 +15,11 @@ body {
   height: 100%;
   margin: 0;
   font-family: Roboto, sans-serif;
+}
+
+:root {
+  @include mat.sidenav-overrides((
+    container-background-color: var(--mat-sys-surface-container),
+    container-text-color: var(--mat-sys-on-surface),
+  ));
 }
