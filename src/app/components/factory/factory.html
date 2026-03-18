@@ -20,11 +20,11 @@
 <!-- ── Canvas ─────────────────────────────────────────────────────────── -->
 <div class="canvas-container" cdkScrollable>
   <div class="canvas-world" #canvasWorld [class.pending-mode]="pendingFrom"
-    [style.width.px]="canvasWidth" [style.height.px]="canvasHeight"
+    [style.width.px]="canvasWidth()" [style.height.px]="canvasHeight()"
     (mousemove)="onMouseMove($event)" (click)="pendingFrom = null">
 
     <!-- ── SVG arrow layer (above nodes via z-index, pointer-events pass-through) -->
-    <svg class="arrows-svg" [attr.width]="canvasWidth" [attr.height]="canvasHeight">
+    <svg class="arrows-svg" [attr.width]="canvasWidth()" [attr.height]="canvasHeight()">
       <defs>
         <!-- Arrowhead for established connections -->
         <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
@@ -62,7 +62,7 @@
     </svg>
 
     <!-- ── Draggable nodes ─────────────────────────────────────────────── -->
-    @for (node of nodes; track node.id) {
+    @for (node of nodes(); track node.id) {
     <div class="factory-node" [class.node-is-source]="pendingFrom?.id === node.id"
       [class.node-is-target]="pendingFrom && pendingFrom.id !== node.id" [style.left.px]="node.x"
       [style.top.px]="node.y" cdkDrag
@@ -80,7 +80,8 @@
       <div class="node-body" cdkDragHandle>
         <div class="node-data">
           <span class="node-label" [title]="node.label">{{ node.label }}</span>
-          <span class="node-label" [title]="node.activeFormula">{{ node.activeFormula }}</span>
+          <span class="node-label" [class]="{'missing-formula': node.activeFormula === null}" [title]="node.activeFormula">{{ node.activeFormula || 'No formula selected' }}</span>
+          <span class="node-label" [class]="getInputStatusCss(node)" [title]="getInputStatus(node)">{{ getInputStatus(node) }}</span>
         </div>
         
         <button class="node-delete-btn" title="Delete node" (click)="deleteNode(node, $event)">✕</button>

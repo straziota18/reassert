@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
+import { Component, computed, ElementRef, HostListener, signal, ViewChild } from '@angular/core';
 import { CdkDrag, CdkDragEnd, CdkDragHandle, CdkDragMove } from '@angular/cdk/drag-drop';
 import { CdkScrollable } from '@angular/cdk/scrolling';
 import { MatAnchor, MatButton } from "@angular/material/button";
@@ -42,32 +42,46 @@ export class Factory {
   readonly NW = NODE_W;
   readonly NH = NODE_H;
 
-  constructor(private readonly matDialog: MatDialog) {}
+  constructor(private readonly matDialog: MatDialog) { }
 
-  get canvasWidth(): number {
-    if (this.nodes.length === 0) return 800;
-    const maxX = Math.max(...this.nodes.map(n => this.visualPos(n).x + NODE_W));
+  // ── Node state ──────────────────────────────────────────────────────────────
+
+  // TODO extract this data from a service
+  readonly nodes = signal<FactoryNode[]>([
+    { id: 'n1', label: 'Ore extractor', activeFormula: 'Titanium Ore', x: 80, y: 240, freeDragPos: { x: 0, y: 0 }, nbInputs: 0 },
+    { id: 'n2', label: 'Ore extractor', activeFormula: 'Wolfram Ore', x: 100, y: 120, freeDragPos: { x: 0, y: 0 }, nbInputs: 0 },
+    { id: 'n3', label: 'Smelter', activeFormula: 'Titanium bar', x: 150, y: 380, freeDragPos: { x: 0, y: 0 }, nbInputs: 1 },
+    { id: 'n4', label: 'Smelter', activeFormula: 'Wolfram bar', x: 200, y: 380, freeDragPos: { x: 0, y: 0 }, nbInputs: 1 },
+    { id: 'n5', label: 'Fabricator', activeFormula: null, x: 380, y: 380, freeDragPos: { x: 0, y: 0 }, nbInputs: 2 },
+    { id: 'n6', label: 'Fabricator', activeFormula: null, x: 680, y: 260, freeDragPos: { x: 0, y: 0 }, nbInputs: 2 },
+    { id: 'n7', label: 'Furnace', activeFormula: null, x: 980, y: 260, freeDragPos: { x: 0, y: 0 }, nbInputs: 3 },
+  ]);
+
+  /**
+   * Canvas width derived from the rightmost node edge + padding.
+   * Re-evaluates only when `nodes` signal changes (add / delete / drag).
+   */
+  readonly canvasWidth = computed(() => {
+    const ns = this.nodes();
+    if (ns.length === 0) return 800;
+    const maxX = Math.max(...ns.map(n => this.visualPos(n).x + NODE_W));
     return maxX + CANVAS_PADDING;
-  }
+  });
 
-  get canvasHeight(): number {
-    if (this.nodes.length === 0) return 600;
-    const maxY = Math.max(...this.nodes.map(n => this.visualPos(n).y + NODE_H));
+  /**
+   * Canvas height derived from the bottom-most node edge + padding.
+   * Re-evaluates only when `nodes` signal changes.
+   */
+  readonly canvasHeight = computed(() => {
+    const ns = this.nodes();
+    if (ns.length === 0) return 600;
+    const maxY = Math.max(...ns.map(n => this.visualPos(n).y + NODE_H));
     return maxY + CANVAS_PADDING;
-  }
+  });
 
-  nodes: FactoryNode[] = [
-    { id: 'n1', label: 'Ore extractor', activeFormula: 'Titanium Ore', x:  80, y: 240, freeDragPos: { x: 0, y: 0 }, nbInputs: 0 },
-    { id: 'n2', label: 'Ore extractor', activeFormula: 'Wolfram Ore' , x: 100, y: 120, freeDragPos: { x: 0, y: 0 }, nbInputs: 0 },
-    { id: 'n3', label: 'Smelter'      , activeFormula: 'Titanium bar', x: 150, y: 380, freeDragPos: { x: 0, y: 0 }, nbInputs: 1 },
-    { id: 'n4', label: 'Smelter'      , activeFormula: 'Wolfram bar' , x: 200, y: 380, freeDragPos: { x: 0, y: 0 }, nbInputs: 1 },
-    { id: 'n5', label: 'Fabricator'   , activeFormula: null, x: 380, y: 380, freeDragPos: { x: 0, y: 0 }, nbInputs: 2 },
-    { id: 'n6', label: 'Fabricator'   , activeFormula: null, x: 680, y: 260, freeDragPos: { x: 0, y: 0 }, nbInputs: 2 },
-    { id: 'n7', label: 'Furnace'      , activeFormula: null, x: 980, y: 260, freeDragPos: { x: 0, y: 0 }, nbInputs: 3 },
-  ];
+  // ── Connections ─────────────────────────────────────────────────────────────
 
-  connections: Connection[] = [
-  ];
+  connections: Connection[] = [];
 
   /** Node whose output port was clicked — awaiting a target input port click. */
   pendingFrom: FactoryNode | null = null;
@@ -98,6 +112,9 @@ export class Factory {
     // feedback loop where Angular CD re-applies the value CDK just computed).
     const p = ev.source.getFreeDragPosition();
     node.freeDragPos = { x: p.x, y: p.y };
+    // Spread the array so canvasWidth / canvasHeight computed signals re-evaluate
+    // and the SVG arrows track the moving node.
+    this.nodes.update(ns => [...ns]);
   }
 
   onDragEnded(ev: CdkDragEnd, node: FactoryNode): void {
@@ -108,6 +125,7 @@ export class Factory {
     // … then reset freeDragPos and let CDK reset its own internal transform.
     node.freeDragPos = { x: 0, y: 0 };
     ev.source.reset();
+    this.nodes.update(ns => [...ns]);
   }
 
   // ── SVG helpers ─────────────────────────────────────────────────────────────
@@ -126,8 +144,8 @@ export class Factory {
 
   /** SVG path for an established connection (right-centre → left-centre). */
   arrowPath(conn: Connection): string {
-    const f = this.nodes.find(n => n.id === conn.fromId);
-    const t = this.nodes.find(n => n.id === conn.toId);
+    const f = this.nodes().find(n => n.id === conn.fromId);
+    const t = this.nodes().find(n => n.id === conn.toId);
     if (!f || !t) return '';
     const fp = this.visualPos(f);
     const tp = this.visualPos(t);
@@ -144,8 +162,8 @@ export class Factory {
 
   /** Approximate midpoint of a connection's bezier (used for the delete handle). */
   arrowMid(conn: Connection): { x: number; y: number } | null {
-    const f = this.nodes.find(n => n.id === conn.fromId);
-    const t = this.nodes.find(n => n.id === conn.toId);
+    const f = this.nodes().find(n => n.id === conn.fromId);
+    const t = this.nodes().find(n => n.id === conn.toId);
     if (!f || !t) return null;
     const fp = this.visualPos(f);
     const tp = this.visualPos(t);
@@ -206,41 +224,36 @@ export class Factory {
 
   addNode(): void {
     const ref = this.matDialog.open<ItemSelectDialog, ItemSelectDialogData, string>(
-    ItemSelectDialog,
-    {
-      data: {
-        title: 'Select a factory',
-        items: ['Ore extractor', 'Smelter', 'Fabricator', 'Furnace'],  // TODO get list of factories
-      },
-      width: '420px',
-      maxWidth: '95vw', // keeps it usable on phones
-    }
-  );
-
-  ref.afterClosed().subscribe(selected => {
-    if (!selected) {
-      return;
-    }
-    const id = `n${this.nodes.length + 1}`;
-    this.nodes = [
-      ...this.nodes,
+      ItemSelectDialog,
       {
+        data: {
+          title: 'Select a factory',
+          items: ['Ore extractor', 'Smelter', 'Fabricator', 'Furnace'],  // TODO get list of factories
+        },
+        width: '420px',
+        maxWidth: '95vw',
+      }
+    );
+
+    ref.afterClosed().subscribe(selected => {
+      if (!selected) return;
+      const id = `n${this.nodes().length + 1}`;
+      const newNode: FactoryNode = {
         id,
         label: selected,
         activeFormula: null,
         x: 120 + Math.random() * 600,
-        y: 80  + Math.random() * 600,
+        y: 80 + Math.random() * 600,
         freeDragPos: { x: 0, y: 0 },
-        nbInputs: 1
-      },
-    ];
-  });
-    
+        nbInputs: 1,  // TODO check inputs
+      };
+      this.nodes.update(ns => [...ns, newNode]);
+    });
   }
 
   deleteNode(node: FactoryNode, ev: MouseEvent): void {
     ev.stopPropagation();
-    this.nodes = this.nodes.filter(n => n.id !== node.id);
+    this.nodes.update(ns => ns.filter(n => n.id !== node.id));
     this.connections = this.connections.filter(
       c => c.fromId !== node.id && c.toId !== node.id,
     );
@@ -248,4 +261,17 @@ export class Factory {
   }
 
   trackById = (_: number, item: { id: string }) => item.id;
+
+  getInputStatusCss(node: FactoryNode): string | null {
+    // TODO, check if missing input or inefficient
+    return null;
+  }
+
+  getInputStatus(node: FactoryNode): string {
+    // TODO, similar to getInputStatusCss - logic is more complex
+    const nbInputs = this.connections.filter(
+      c => c.toId === node.id,
+    ).length;
+    return node.nbInputs === 0 ? 'Raw material' : `${nbInputs}/${node.nbInputs} inputs available`;
+  }
 }

@@ -1,18 +1,22 @@
 <h2 mat-dialog-title>{{ data.title }}</h2>
 
 <mat-dialog-content>
-  <!-- Search filter -->
+  <!-- Search filter — keyboard events bubble up from here -->
   <mat-form-field appearance="outline" class="search-field">
     <mat-label>Search</mat-label>
     <input matInput [ngModel]="query()" (ngModelChange)="query.set($event)"
-           placeholder="Type to filter..." autocomplete="off" />
+           (keydown)="onKeydown($event)"
+           placeholder="Type to filter…" autocomplete="off" />
     <mat-icon matSuffix>search</mat-icon>
   </mat-form-field>
 
   <!-- Items list -->
   <mat-nav-list class="items-list">
-    @for (item of filteredItems(); track item) {
-      <mat-list-item (click)="select(item)" class="item-row">
+    @for (item of filteredItems(); track item; let i = $index) {
+      <mat-list-item #itemEl
+        (click)="select(item)"
+        [class.highlighted]="highlightedIndex() === i"
+        class="item-row">
         <span matListItemTitle>{{ item }}</span>
         <div matListItemMeta><mat-icon>chevron_right</mat-icon></div>
       </mat-list-item>
