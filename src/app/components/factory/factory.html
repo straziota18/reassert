@@ -18,12 +18,13 @@
 </div>
 
 <!-- ── Canvas ─────────────────────────────────────────────────────────── -->
-<div class="canvas-container">
-  <div class="canvas-world" #canvasWorld [class.pending-mode]="pendingFrom" [style.width.px]="CW" [style.height.px]="CH"
+<div class="canvas-container" cdkScrollable>
+  <div class="canvas-world" #canvasWorld [class.pending-mode]="pendingFrom"
+    [style.width.px]="canvasWidth" [style.height.px]="canvasHeight"
     (mousemove)="onMouseMove($event)" (click)="pendingFrom = null">
 
     <!-- ── SVG arrow layer (above nodes via z-index, pointer-events pass-through) -->
-    <svg class="arrows-svg" [attr.width]="CW" [attr.height]="CH">
+    <svg class="arrows-svg" [attr.width]="canvasWidth" [attr.height]="canvasHeight">
       <defs>
         <!-- Arrowhead for established connections -->
         <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
@@ -64,7 +65,7 @@
     @for (node of nodes; track node.id) {
     <div class="factory-node" [class.node-is-source]="pendingFrom?.id === node.id"
       [class.node-is-target]="pendingFrom && pendingFrom.id !== node.id" [style.left.px]="node.x"
-      [style.top.px]="node.y" [cdkDragFreeDragPosition]="node.freeDragPos" cdkDrag
+      [style.top.px]="node.y" cdkDrag
       (cdkDragMoved)="onDragMoved($event, node)" (cdkDragEnded)="onDragEnded($event, node)"
       (click)="$event.stopPropagation()">
 
@@ -77,7 +78,11 @@
 
       <!-- Node body — drag handle + label + delete button -->
       <div class="node-body" cdkDragHandle>
-        <span class="node-label" [title]="node.label">{{ node.label }}</span>
+        <div class="node-data">
+          <span class="node-label" [title]="node.label">{{ node.label }}</span>
+          <span class="node-label" [title]="node.activeFormula">{{ node.activeFormula }}</span>
+        </div>
+        
         <button class="node-delete-btn" title="Delete node" (click)="deleteNode(node, $event)">✕</button>
       </div>
 

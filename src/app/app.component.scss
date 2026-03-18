@@ -88,6 +88,7 @@
   position: sticky;
   top: 0;
   z-index: 100;
+  flex-shrink: 0;
 
   .toolbar-title {
     margin-left: 8px;
@@ -103,8 +104,7 @@
 // ── Main content area ─────────────────────────────────────────
 .app-content {
   padding: 24px;
-  max-width: 1400px;
-  margin: 0 auto;
+  flex: 1;
 
   // Tighter padding on mobile
   @media (max-width: 599px) {
