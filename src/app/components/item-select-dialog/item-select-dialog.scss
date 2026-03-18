@@ -1,0 +1,55 @@
+// ── Search field ────────────────────────────────────────────────────────────
+.search-field {
+  width: 100%;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+// ── Items list ───────────────────────────────────────────────────────────────
+.items-list {
+  // Constrain height so the list scrolls instead of growing unbounded.
+  // On small screens the dialog itself fills most of the viewport height,
+  // so we clamp with a max-height that leaves room for the header & actions.
+  max-height: min(400px, 55dvh);
+  overflow-y: auto;
+  border: 1px solid var(--mat-sys-outline-variant, #ccc);
+  border-radius: 8px;
+  padding: 0;
+}
+
+.item-row {
+  cursor: pointer;
+  border-radius: 0;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+
+  &:first-child { border-top-left-radius: 8px; border-top-right-radius: 8px; }
+  &:last-child  { border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; }
+
+  // Subtle hover highlight using the M3 surface-container token
+  &:hover {
+    background-color: var(--mat-sys-surface-container-highest, rgba(0, 0, 0, 0.06));
+  }
+}
+
+// ── No results ───────────────────────────────────────────────────────────────
+.no-results {
+  padding: 16px;
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant, #666);
+  font-style: italic;
+  margin: 0;
+}
+
+// ── Responsive ───────────────────────────────────────────────────────────────
+// On very narrow viewports (phones in portrait) let the dialog take full width.
+:host {
+  display: block;
+}
+
+// mat-dialog-content default padding is fine; just ensure the content
+// doesn't scroll horizontally on small screens.
+::ng-deep mat-dialog-content {
+  overflow-x: hidden;
+}

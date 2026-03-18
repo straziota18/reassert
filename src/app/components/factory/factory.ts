@@ -4,6 +4,8 @@ import { CdkScrollable } from '@angular/cdk/scrolling';
 import { MatAnchor, MatButton } from "@angular/material/button";
 import { MatIcon } from "@angular/material/icon";
 import * as _ from 'lodash';
+import { MatDialog } from '@angular/material/dialog';
+import { ItemSelectDialog, ItemSelectDialogData } from '../item-select-dialog/item-select-dialog';
 
 const NODE_W = 164;
 const NODE_H = 96;
@@ -40,6 +42,8 @@ export class Factory {
   readonly NW = NODE_W;
   readonly NH = NODE_H;
 
+  constructor(private readonly matDialog: MatDialog) {}
+
   get canvasWidth(): number {
     if (this.nodes.length === 0) return 800;
     const maxX = Math.max(...this.nodes.map(n => this.visualPos(n).x + NODE_W));
@@ -69,8 +73,6 @@ export class Factory {
   pendingFrom: FactoryNode | null = null;
   /** Current mouse position on the canvas-world, used to draw the in-progress arrow. */
   pendingMouse = { x: 0, y: 0 };
-
-  private idCounter = 6;
 
   inputIds(node: FactoryNode): number[] {
     return _.range(0, node.nbInputs);
@@ -203,12 +205,28 @@ export class Factory {
   // ── Node CRUD ───────────────────────────────────────────────────────────────
 
   addNode(): void {
-    const id = `n${this.idCounter++}`;
+    const ref = this.matDialog.open<ItemSelectDialog, ItemSelectDialogData, string>(
+    ItemSelectDialog,
+    {
+      data: {
+        title: 'Select a factory',
+        items: ['Ore extractor', 'Smelter', 'Fabricator', 'Furnace'],  // TODO get list of factories
+      },
+      width: '420px',
+      maxWidth: '95vw', // keeps it usable on phones
+    }
+  );
+
+  ref.afterClosed().subscribe(selected => {
+    if (!selected) {
+      return;
+    }
+    const id = `n${this.nodes.length + 1}`;
     this.nodes = [
       ...this.nodes,
       {
         id,
-        label: `Node ${id}`,
+        label: selected,
         activeFormula: null,
         x: 120 + Math.random() * 600,
         y: 80  + Math.random() * 600,
@@ -216,6 +234,8 @@ export class Factory {
         nbInputs: 1
       },
     ];
+  });
+    
   }
 
   deleteNode(node: FactoryNode, ev: MouseEvent): void {

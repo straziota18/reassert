@@ -1,0 +1,27 @@
+<h2 mat-dialog-title>{{ data.title }}</h2>
+
+<mat-dialog-content>
+  <!-- Search filter -->
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-label>Search</mat-label>
+    <input matInput [ngModel]="query()" (ngModelChange)="query.set($event)"
+           placeholder="Type to filter..." autocomplete="off" />
+    <mat-icon matSuffix>search</mat-icon>
+  </mat-form-field>
+
+  <!-- Items list -->
+  <mat-nav-list class="items-list">
+    @for (item of filteredItems(); track item) {
+      <mat-list-item (click)="select(item)" class="item-row">
+        <span matListItemTitle>{{ item }}</span>
+        <div matListItemMeta><mat-icon>chevron_right</mat-icon></div>
+      </mat-list-item>
+    } @empty {
+      <p class="no-results">No results for "<em>{{ query() }}</em>"</p>
+    }
+  </mat-nav-list>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+</mat-dialog-actions>
