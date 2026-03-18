@@ -1,1 +1,92 @@
-<p>factory works!</p>
+<!-- ── Toolbar ─────────────────────────────────────────────────────────── -->
+<div class="factory-toolbar">
+  <button mat-raised-button color="primary" (click)="addNode()"><mat-icon>add</mat-icon>Add Factory</button>
+
+  @if (pendingFrom) {
+  <span class="toolbar-hint">
+    Connecting <strong>{{ pendingFrom.label }}</strong> -
+    click a node's <span class="hint-port hint-in">input port</span> to complete,
+    or press <kbd>Esc</kbd> to cancel
+  </span>
+  } @else {
+  <span class="toolbar-hint muted">
+    Drag nodes freely - click
+    <span class="hint-port hint-out">output port</span> to draw an arrow -
+    hover an arrow to delete it
+  </span>
+  }
+</div>
+
+<!-- ── Canvas ─────────────────────────────────────────────────────────── -->
+<div class="canvas-container">
+  <div class="canvas-world" #canvasWorld [class.pending-mode]="pendingFrom" [style.width.px]="CW" [style.height.px]="CH"
+    (mousemove)="onMouseMove($event)" (click)="pendingFrom = null">
+
+    <!-- ── SVG arrow layer (above nodes via z-index, pointer-events pass-through) -->
+    <svg class="arrows-svg" [attr.width]="CW" [attr.height]="CH">
+      <defs>
+        <!-- Arrowhead for established connections -->
+        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" class="arrowhead-fill" />
+        </marker>
+        <!-- Arrowhead for the in-progress (pending) arrow -->
+        <marker id="arrowhead-pending" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" class="arrowhead-pending-fill" />
+        </marker>
+      </defs>
+
+      <!-- Established connections -->
+      @for (conn of connections; track conn.id) {
+      <g class="connection-group">
+        <!-- Wider invisible stroke for easier hover/click targeting -->
+        <path [attr.d]="arrowPath(conn)" class="arrow-hit-area" />
+        <!-- Visible arrow -->
+        <path [attr.d]="arrowPath(conn)" class="arrow-path" marker-end="url(#arrowhead)" />
+        <!-- Delete handle at arrow midpoint -->
+        @if (arrowMid(conn); as mid) {
+        <g class="conn-delete-handle" (click)="deleteConn(conn.id, $event)"
+          [attr.transform]="'translate(' + mid.x + ',' + mid.y + ')'">
+          <circle r="10" class="conn-delete-bg" />
+          <line x1="-4" y1="-4" x2="4" y2="4" class="conn-delete-icon" />
+          <line x1="4" y1="-4" x2="-4" y2="4" class="conn-delete-icon" />
+        </g>
+        }
+      </g>
+      }
+
+      <!-- In-progress arrow while user picks a target -->
+      @if (pendingFrom) {
+      <path [attr.d]="pendingPath()" class="arrow-path arrow-pending" marker-end="url(#arrowhead-pending)" />
+      }
+    </svg>
+
+    <!-- ── Draggable nodes ─────────────────────────────────────────────── -->
+    @for (node of nodes; track node.id) {
+    <div class="factory-node" [class.node-is-source]="pendingFrom?.id === node.id"
+      [class.node-is-target]="pendingFrom && pendingFrom.id !== node.id" [style.left.px]="node.x"
+      [style.top.px]="node.y" [cdkDragFreeDragPosition]="node.freeDragPos" cdkDrag
+      (cdkDragMoved)="onDragMoved($event, node)" (cdkDragEnded)="onDragEnded($event, node)"
+      (click)="$event.stopPropagation()">
+
+      <!-- Input port — left edge, accepts incoming arrows -->
+      <div class="port-in-wrapper">
+      @for (input of inputIds(node); track input) {
+        <div class="port port-in" title="Input - connect an arrow here" (click)="finishConn(node, input, $event)"></div>
+      }
+      </div>
+
+      <!-- Node body — drag handle + label + delete button -->
+      <div class="node-body" cdkDragHandle>
+        <span class="node-label" [title]="node.label">{{ node.label }}</span>
+        <button class="node-delete-btn" title="Delete node" (click)="deleteNode(node, $event)">✕</button>
+      </div>
+
+      <!-- Output port — right edge, starts an outgoing arrow -->
+      <div class="port port-out" [class.port-out-used]="hasOutgoing(node.id)" title="Output - click to start an arrow"
+        (click)="startConn(node, $event)"></div>
+
+    </div>
+    }
+
+  </div><!-- /canvas-world -->
+</div><!-- /canvas-container -->

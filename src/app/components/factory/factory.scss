@@ -1,0 +1,327 @@
+// ── Host ──────────────────────────────────────────────────────────────────────
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Roboto', sans-serif;
+}
+
+// ── Toolbar ───────────────────────────────────────────────────────────────────
+.factory-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 16px;
+  background: var(--mat-sys-surface-variant);
+  // border-bottom: 1px solid #1e3a5f;
+  flex-shrink: 0;
+  min-height: 48px;
+}
+
+.toolbar-hint {
+  font-size: small;
+  color: var(--mat-sys-on-surface-variant);
+
+  strong { font-weight: bold; }
+
+  kbd {
+    background: var(--mat-sys-secondary-container);
+    border: 1px solid var(--mat-sys-secondary);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 11px;
+    color: var(--mat-sys-secondary);
+  }
+
+  &.muted { opacity: 0.7; }
+}
+
+.hint-port {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+
+  &.hint-in {
+    background: rgba(33, 150, 243, 0.18);
+    color: #64b5f6;
+    border: 1px solid rgba(33, 150, 243, 0.4);
+  }
+
+  &.hint-out {
+    
+    background: rgba(76, 175, 80, 0.18);
+    color: #81c784;
+    border: 1px solid rgba(76, 175, 80, 0.4);
+  }
+}
+
+// ── Canvas container (scrollable viewport) ────────────────────────────────────
+.canvas-container {
+  flex: 1;
+  overflow: auto;
+  background: #0a1628;
+
+  // Custom scrollbar
+  &::-webkit-scrollbar { width: 8px; height: 8px; }
+  &::-webkit-scrollbar-track { background: #0d1b2a; }
+  &::-webkit-scrollbar-thumb {
+    background: #1e3a5f;
+    border-radius: 4px;
+    &:hover { background: #2a5298; }
+  }
+}
+
+// ── Canvas world (the large draggable surface) ────────────────────────────────
+.canvas-world {
+  position: relative;
+  // Subtle dot-grid background
+  background-color: var(--mat-sys-secondary-container);
+  background-image:
+    radial-gradient(circle, var(--mat-sys-secondary) 1px, transparent 1px);
+  background-size: 32px 32px;
+  cursor: default;
+
+  &.pending-mode {
+    cursor: crosshair;
+
+    // In connection mode highlight possible targets
+    .factory-node:not(.node-is-source) {
+      cursor: pointer;
+    }
+  }
+}
+
+// ── SVG arrows overlay ────────────────────────────────────────────────────────
+.arrows-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  // Above nodes so delete handles are always accessible …
+  z-index: 10;
+  // … but pass pointer events through to empty areas / nodes below.
+  pointer-events: none;
+  overflow: visible;
+}
+
+// Arrowhead fill colours (set as classes inside <marker> elements)
+.arrowhead-fill         { fill: #5c6bc0; }
+.arrowhead-pending-fill { fill: #fb8c00; }
+
+// Wide invisible stroke for easy hover/click targeting
+.arrow-hit-area {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 16;
+  pointer-events: stroke;
+  cursor: pointer;
+}
+
+// Visible bezier curve
+.arrow-path {
+  fill: none;
+  stroke: #5c6bc0;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  pointer-events: none; // hit-area handles interaction
+
+  &.arrow-pending {
+    stroke: #fb8c00;
+    stroke-dasharray: 9 5;
+    pointer-events: none;
+  }
+}
+
+// Delete handle group — re-enable pointer events on SVG children
+.connection-group {
+  // Reveal delete handle on hover of either the hit-area or the handle itself
+  &:hover .conn-delete-handle {
+    .conn-delete-bg  { opacity: 1; }
+    .conn-delete-icon { opacity: 1; }
+  }
+
+  &:hover .arrow-path {
+    stroke: #7986cb;
+  }
+
+  &:hover .arrowhead-fill {
+    fill: #7986cb;
+  }
+}
+
+.conn-delete-handle {
+  pointer-events: all;
+  cursor: pointer;
+}
+
+.conn-delete-bg {
+  fill: #c62828;
+  stroke: #ef5350;
+  stroke-width: 1.5;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.conn-delete-icon {
+  stroke: #fff;
+  stroke-width: 2;
+  stroke-linecap: round;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+// ── Factory node ──────────────────────────────────────────────────────────────
+.factory-node {
+  position: absolute;
+  width: 164px;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  z-index: 5;
+
+  // background: #112240;
+  background: var(--mat-sys-primary-container);
+  border: 1.5px solid var(--mat-sys-primary-container);
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+
+  transition: border-color 0.18s, box-shadow 0.18s;
+  user-select: none;  
+
+  &:hover {
+    border-color: #3a6ea8;
+    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.6);
+  }
+
+  // Currently being dragged (CDK adds this class)
+  &.cdk-drag-dragging {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8);
+    border-color: #5c6bc0;
+    z-index: 20;
+  }
+
+  // The node that is the connection source
+  &.node-is-source {
+    border-color: #fb8c00;
+    box-shadow: 0 0 0 3px rgba(251, 140, 0, 0.28), 0 6px 22px rgba(0, 0, 0, 0.6);
+  }
+
+  // All other nodes while a connection is pending — highlight as potential targets
+  &.node-is-target {
+    border-color: #43a047;
+
+    &:hover {
+      box-shadow: 0 0 0 3px rgba(67, 160, 71, 0.28), 0 6px 22px rgba(0, 0, 0, 0.6);
+    }
+
+    .port-in:hover {
+      transform: scale(1.5);
+      box-shadow: 0 0 10px #66bb6a;
+    }
+  }
+
+  .port-in-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    height: 100%;
+  }
+}
+
+// CDK drag ghost placeholder
+.cdk-drag-placeholder {
+  opacity: 0.25;
+  border: 1.5px dashed #3a6ea8 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+// Smooth return animation after drop
+.cdk-drag-animating {
+  transition: transform 220ms cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+// ── Node body (drag handle) ───────────────────────────────────────────────────
+.node-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  cursor: move;
+  min-width: 0; // allow text truncation
+  height: 100%;
+}
+
+.node-label {
+  color: var(--mat-sys-primary);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+.node-delete-btn {
+  background: transparent;
+  border: none;
+  color: #546e7a;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 3px 5px;
+  border-radius: 4px;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: color 0.15s, background 0.15s;
+
+  &:hover {
+    color: #ef5350;
+    background: rgba(239, 83, 80, 0.15);
+  }
+}
+
+// ── Ports ─────────────────────────────────────────────────────────────────────
+.port {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2.5px solid;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  // Slightly overlap the node edge
+  position: relative;
+  z-index: 6;
+
+  &:hover { transform: scale(1.35); }
+}
+
+// Input port — left edge (blue)
+.port-in {
+  background: #0d3b6e;
+  border-color: #2196f3;
+  margin-left: -9px;
+
+  &:hover { box-shadow: 0 0 8px #42a5f5; }
+}
+
+// Output port — right edge (green / amber when a connection already exists)
+.port-out {
+  background: #1b3a1e;
+  border-color: #4caf50;
+  margin-right: -9px;
+
+  &:hover { box-shadow: 0 0 8px #66bb6a; }
+
+  &.port-out-used {
+    background: #3e2000;
+    border-color: #fb8c00;
+
+    &:hover { box-shadow: 0 0 8px #ffa726; }
+  }
+}
