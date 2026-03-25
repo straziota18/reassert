@@ -48,7 +48,7 @@ export class AppComponent implements OnInit {
 
   navItems: NavItem[] = [
     { label: 'Factory Layout', icon: 'factory', route: '/factory-layout' },
-    { label: 'Factory Inventory', icon: 'edit_document', route: '/factoy-inventory' },
+    { label: 'Factory Inventory', icon: 'edit_document', route: '/factory-inventory' },
     { label: 'Production Schedule', icon: 'calendar_month', route: '/schedule' },
   ];
 
@@ -62,12 +62,12 @@ export class AppComponent implements OnInit {
       const l = this.userSessionService.activeLayout();
       return `Star Rupture Planner - ${l ? l.id : 'Global layout'}`;
     });
-  }
-
-  ngOnInit(): void {
     toObservable(this.userSessionService.activeLayout).subscribe(l => {
       this.titleService.setTitle(`Reassert - ${l ? l.id : 'Global layout'}`);
     });
+  }
+
+  ngOnInit(): void {    
     // Responsive sidenav behaviour
     this.breakpointObserver.observe([Breakpoints.Handset])
       .subscribe(result => {

@@ -1,0 +1,64 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.toolbar-title {
+  margin-left: 8px;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.content {
+  padding: 16px;
+  flex: 1;
+  overflow: auto;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 64px 0;
+}
+
+.inventory-table {
+  width: 100%;
+}
+
+.type-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.active-icon {
+  color: var(--mat-sys-primary);
+}
+
+.virtual-icon {
+  color: var(--mat-sys-tertiary);
+}
+
+.count-cell {
+  font-weight: 500;
+  text-align: center;
+}
+
+.virtual-row {
+  background-color: color-mix(in srgb, var(--mat-sys-tertiary-container) 20%, transparent);
+}
+
+.no-data-cell {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}

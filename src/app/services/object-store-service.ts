@@ -23,6 +23,8 @@ interface SerializedActiveFactory {
 interface SerializedVirtualFactory {
   type: 'virtual';
   id: string;
+  /** Id of the FactoryLayout this virtual factory belongs to. */
+  layoutId: string;
   outputs: { resourceId: string; amountPerMinute: number }[];
 }
 
@@ -131,6 +133,7 @@ export class ObjectStoreService {
       return {
         type: 'virtual',
         id: vf.id,
+        layoutId: vf.layoutId,
         outputs: vf.outputs.map(o => ({
           resourceId: o.resource.id,
           amountPerMinute: o.amountPerMinute,
@@ -193,6 +196,7 @@ export class ObjectStoreService {
       const vf = sf as SerializedVirtualFactory;
       return {
         id: vf.id,
+        layoutId: vf.layoutId,
         outputs: vf.outputs.map(o => {
           const resource = universe.resources[o.resourceId];
           if (!resource) {

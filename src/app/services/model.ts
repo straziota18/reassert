@@ -16,6 +16,8 @@ export interface ActiveFactory extends Factory {
 }
 
 export interface VirtualFactory extends ReassertObject {
+    /** The id of the FactoryLayout this virtual factory belongs to. */
+    layoutId: string;
     outputs: {resource: Resource, amountPerMinute: number}[];
 }
 
