@@ -4,7 +4,7 @@
 
   @if (pendingFrom) {
   <span class="toolbar-hint">
-    Connecting <strong>{{ pendingFrom.node.label }}</strong> -
+    Connecting <strong>{{ getNodeLabel(pendingFrom.node) }}</strong> -
     click a node's <span class="hint-port hint-in">input port</span> to complete,
     or press <kbd>Esc</kbd> to cancel
   </span>
@@ -77,9 +77,10 @@
       <!-- Node body — drag handle + label + delete button -->
       <div class="node-body" cdkDragHandle>
         <div class="node-data">
-          <span class="node-label" [title]="node.label">{{ node.label }}</span>
-          <span class="node-label" [class]="{'missing-formula': node.activeFormula === null}"
-            [title]="node.activeFormula">{{ node.activeFormula || 'No formula selected' }}</span>
+          <span class="node-label" [title]="getNodeLabel(node)">{{ getNodeLabel(node) }}</span>
+          <span class="node-label" (click)="startFormulaChange(node)"
+            [class]="{'missing-formula': isMissingFormula(node), 'clickable': isActiveFactory(node)}"
+            [title]="activeFormulaSignals[node.id]()">{{ activeFormulaSignals[node.id]() }}</span>
           <span class="node-label" [class]="getInputStatusCss(node)" [title]="getInputStatus(node)">{{
             getInputStatus(node) }}</span>
         </div>
@@ -90,8 +91,8 @@
       <!-- Output port — right edge, starts an outgoing arrow -->
       <div class="port-wrapper">
         @for (output of outputIds(node); track output) {
-        <div class="port port-out" [class.port-out-used]="hasOutgoing(node.id, output)" title="Output - click to start an arrow"
-          (click)="startConn(node, output, $event)"></div>
+        <div class="port port-out" [class.port-out-used]="hasOutgoing(node.id, output)"
+          title="Output - click to start an arrow" (click)="startConn(node, output, $event)"></div>
         }
       </div>
 
