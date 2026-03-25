@@ -1,25 +1,36 @@
 import { computed, signal, Signal, WritableSignal } from '@angular/core';
 import * as _ from 'lodash';
 
-export interface UniverseObject {
+export interface ReassertObject {
     id: string;
 }
 
-export interface Factory extends UniverseObject {
+export interface Factory extends ReassertObject {
     energyConsumption: number;
     coreLoadConsumption: number;
     nbInputs: number;
 }
 
 export interface ActiveFactory extends Factory {
-    activeRecipe: WritableSignal<Resource>;
+    activeRecipe: WritableSignal<Resource | null>;
 }
 
-export interface VirtualFactory extends UniverseObject {
+export interface VirtualFactory extends ReassertObject {
     outputs: {resource: Resource, amountPerMinute: number}[];
 }
 
-export interface FactoryCanvasNode extends UniverseObject {
+export interface Resource extends ReassertObject {
+    createdIn: Factory;
+    requires: {input: Resource, amountPerCycle: number}[];
+    productionCycle: {seconds: number, nbUnits: number};
+}
+
+export interface Universe {
+    resources: {[id: string]: Resource};
+    factories: {[id: string]: Factory};
+}
+
+export interface FactoryCanvasNode extends ReassertObject {
   factory: ActiveFactory | VirtualFactory;
   x: number;
   y: number;
@@ -57,24 +68,14 @@ export const isMissingFormula: (node: FactoryCanvasNode) => boolean = (node: Fac
     return !_.hasIn(node, 'outputs') ? (<ActiveFactory>node.factory).activeRecipe === null : false;
 };
 
-export interface Resource extends UniverseObject {
-    createdIn: Factory;
-    requires: {input: Resource, amountPerCycle: number}[];
-    productionCycle: {seconds: number, nbUnits: number};
-}
-
-export interface Universe {
-    resources: {[id: string]: Resource};
-    factories: {[id: string]: Factory};
-}
-
-export interface Connection extends UniverseObject {
+export interface Connection extends ReassertObject {
   fromId: string;
   fromOutputId: number;
   toId: string;
   toInputId: number;
 }
 
-export interface FactoryLayout {
-
+export interface FactoryLayout extends ReassertObject {
+    factories: FactoryCanvasNode[];
+    connections: Connection[];
 }
