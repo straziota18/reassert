@@ -1,0 +1,80 @@
+[
+    {
+        "id": "Sulfur Extractor",
+        "energyConsumption": 40,
+        "coreLoadConsumption": 0.0,
+        "nbInputs": 0
+    },
+    {
+        "id": "Helium-3 Extractor",
+        "energyConsumption": 15,
+        "coreLoadConsumption": 0.0,
+        "nbInputs": 0
+    },
+    {
+        "id": "Laser Drill",
+        "energyConsumption": 5,
+        "coreLoadConsumption": 0.0,
+        "nbInputs": 0
+    },
+    {
+        "id": "Oil Extractor",
+        "energyConsumption": 80,
+        "coreLoadConsumption": 0.0,
+        "nbInputs": 0
+    },
+    {
+        "id": "Ore Excavator",
+        "energyConsumption": 5,
+        "coreLoadConsumption": 0.0,
+        "nbInputs": 0
+    },
+    {
+        "id": "Assembler",
+        "energyConsumption": 60,
+        "coreLoadConsumption": 0.0,
+        "nbInputs": 5
+    },
+    {
+        "id": "Constructorizer",
+        "energyConsumption": 80,
+        "coreLoadConsumption": 0.0,
+        "nbInputs": 4
+    },
+    {
+        "id": "Fabricator",
+        "energyConsumption": 10,
+        "coreLoadConsumption": 0.0,
+        "nbInputs": 2
+    },
+    {
+        "id": "Furnace",
+        "energyConsumption": 20,
+        "coreLoadConsumption": 0.0,
+        "nbInputs": 3
+    },
+    {
+        "id": "Mega Press",
+        "energyConsumption": 30,
+        "coreLoadConsumption": 0.0,
+        "nbInputs": 4
+    },
+    {
+        "id": "Smelter",
+        "energyConsumption": 5,
+        "coreLoadConsumption": 0.0,
+        "nbInputs": 1
+    },
+    {
+        "id": "Compounder",
+        "energyConsumption": 60,
+        "coreLoadConsumption": 0.0,
+        "nbInputs": 3
+    },
+    {
+        "id": "Refinery",
+        "energyConsumption": 40,
+        "coreLoadConsumption": 0.0,
+        "nbInputs": 2
+    }
+]

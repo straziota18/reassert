@@ -1,0 +1,2787 @@
+[
+    {
+        "id": "Sulfur Ore",
+        "createdIn": "Sulfur Extractor",
+        "requires": [],
+        "productionCycle": {
+            "seconds": 2,
+            "nbUnits": 8
+        }
+    },
+    {
+        "id": "Helium-3",
+        "createdIn": "Helium-3 Extractor",
+        "requires": [],
+        "productionCycle": {
+            "seconds": 2,
+            "nbUnits": 8
+        }
+    },
+    {
+        "id": "Goethite Ore",
+        "createdIn": "Laser Drill",
+        "requires": [],
+        "productionCycle": {
+            "seconds": 0.15,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Powerium",
+        "createdIn": "Oil Extractor",
+        "requires": [],
+        "productionCycle": {
+            "seconds": 0.2,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Calcium Ore",
+        "createdIn": "Ore Excavator",
+        "requires": [],
+        "productionCycle": {
+            "seconds": 2,
+            "nbUnits": 4
+        }
+    },
+    {
+        "id": "Titanium Ore",
+        "createdIn": "Ore Excavator",
+        "requires": [],
+        "productionCycle": {
+            "seconds": 2,
+            "nbUnits": 4
+        }
+    },
+    {
+        "id": "Wolfram Ore",
+        "createdIn": "Ore Excavator",
+        "requires": [],
+        "productionCycle": {
+            "seconds": 2,
+            "nbUnits": 4
+        }
+    },
+    {
+        "id": "Accumulator",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Electronics",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Stator",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Battery",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 6,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Aerogel",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Goethite Powder",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Calcium Powder",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Refined Oil",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 1,
+            "nbUnits": 3
+        }
+    },
+    {
+        "id": "Airlock",
+        "createdIn": "Constructorizer",
+        "requires": [
+            {
+                "input": "Scaffolding",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Electronics",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Epoxy",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Pressure Tank",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 15,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Anti-Radiation Covers",
+        "createdIn": "Constructorizer",
+        "requires": [
+            {
+                "input": "Reinforced Housing",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Reinforced Frame",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Plastic",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Epoxy",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 15,
+            "nbUnits": 2
+        }
+    },
+    {
+        "id": "Antimatter Generator",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "RTSC",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Cyclotrone",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Anti-Radiation Covers",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Rotor",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Stator",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 30,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Arc Reactor",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "RTSC Generator",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Antimatter Generator",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Containment Vessel",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 5,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Basic Building Material",
+        "createdIn": "Fabricator",
+        "requires": [
+            {
+                "input": "Wolfram Ore",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Titanium Ore",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 5,
+            "nbUnits": 10
+        }
+    },
+    {
+        "id": "Electronics",
+        "createdIn": "Furnace",
+        "requires": [
+            {
+                "input": "Synthetic Silicon",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Inductor",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Stator",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 5,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Basic Fuel",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Plastic",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Goethite Powder",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Liquid Helium",
+                "amountPerCycle": 3
+            }
+        ],
+        "productionCycle": {
+            "seconds": 1,
+            "nbUnits": 5
+        }
+    },
+    {
+        "id": "Battery",
+        "createdIn": "Mega Press",
+        "requires": [
+            {
+                "input": "Inductor",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Electronics",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Sulfuric Acid",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 4,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Biofilament",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Synthetic Protein",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "RNA Stabilizer",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Substance #FHS-135-493",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Nanofiber",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 1,
+            "nbUnits": 2
+        }
+    },
+    {
+        "id": "Bioprinter",
+        "createdIn": "Constructorizer",
+        "requires": [
+            {
+                "input": "Scanner",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Biofilament",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Epoxy",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Nozzle",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 20,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Calcite Sheets",
+        "createdIn": "Fabricator",
+        "requires": [
+            {
+                "input": "Calcium Block",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 2,
+            "nbUnits": 2
+        }
+    },
+    {
+        "id": "Calcium Block",
+        "createdIn": "Smelter",
+        "requires": [
+            {
+                "input": "Calcium Ore",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 2,
+            "nbUnits": 2
+        }
+    },
+    {
+        "id": "Calcium Powder",
+        "createdIn": "Furnace",
+        "requires": [
+            {
+                "input": "Calcium Block",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 3,
+            "nbUnits": 3
+        }
+    },
+    {
+        "id": "Carbon Sonar",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Ion Stabilizer",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Electromagnet",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Accumulator",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Inductor",
+                "amountPerCycle": 3
+            }
+        ],
+        "productionCycle": {
+            "seconds": 15,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Ceramics",
+        "createdIn": "Furnace",
+        "requires": [
+            {
+                "input": "Calcite Sheets",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Wolfram Powder",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 2,
+            "nbUnits": 2
+        }
+    },
+    {
+        "id": "Inductor",
+        "createdIn": "Furnace",
+        "requires": [
+            {
+                "input": "Tube",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Wolfram Wire",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Ceramics",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 3,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Condenser",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Resonator",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Synthetic Resin",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Nanofiber",
+                "amountPerCycle": 8
+            },
+            {
+                "input": "Pump",
+                "amountPerCycle": 3
+            }
+        ],
+        "productionCycle": {
+            "seconds": 15,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Containment Vessel",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Anti-Radiation Covers",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Pseudorubber Insulator",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Epoxy",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Reinforced Housing",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Pressure Tank",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 15,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Control Systems",
+        "createdIn": "Constructorizer",
+        "requires": [
+            {
+                "input": "Electronics",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Stabilizer",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Reinforced Housing",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Accumulator",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 15,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Converter",
+        "createdIn": "Constructorizer",
+        "requires": [
+            {
+                "input": "Laser Emitter",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Accumulator",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Superconductor",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Plastic",
+                "amountPerCycle": 3
+            }
+        ],
+        "productionCycle": {
+            "seconds": 20,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Cyclotrone",
+        "createdIn": "Constructorizer",
+        "requires": [
+            {
+                "input": "Condenser",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Electromagnet",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Ion Injector",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Reinforced Housing",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 15,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Dome",
+        "createdIn": "Constructorizer",
+        "requires": [
+            {
+                "input": "Glass",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Hardening Agent",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Aerogel",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Reinforced Frame",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 1,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Electromagnet",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Electromagnetic Coil",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Synthetic Resin",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Accumulator",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 5,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Electromagnetic Coil",
+        "createdIn": "Mega Press",
+        "requires": [
+            {
+                "input": "Inductor",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Pressurized Helium",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Wolfram Plate",
+                "amountPerCycle": 6
+            },
+            {
+                "input": "Supermagnet",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 4,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Epoxy",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Hardening Agent",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Synthetic Resin",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Plastic",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 1,
+            "nbUnits": 3
+        }
+    },
+    {
+        "id": "Chemicals",
+        "createdIn": "Furnace",
+        "requires": [
+            {
+                "input": "Synthetic Silicon",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Wolfram Powder",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Helium-3",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 2,
+            "nbUnits": 2
+        }
+    },
+    {
+        "id": "Generator",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Turbine",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Battery",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Nozzle",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 1,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Genome Alternator",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Molecular Scalpel",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Synthetic DNA",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Laser Emitter",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Reinforced Frame",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 30,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Glass",
+        "createdIn": "Furnace",
+        "requires": [
+            {
+                "input": "Helium-3",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Calcium Powder",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 3,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Goethite Lattice",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Goethite Ingot",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Sulfuric Acid",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Wolfram Steel Ingot",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Titanoferrite Ingot",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 5,
+            "nbUnits": 2
+        }
+    },
+    {
+        "id": "Goethite Powder",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Goethite Ingot",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Liquid Helium",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Calcium Powder",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 5,
+            "nbUnits": 3
+        }
+    },
+    {
+        "id": "Explosive Charge",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Reinforced Housing",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Epoxy",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Chemicals",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Battery",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 1,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Stabilizer",
+        "createdIn": "Fabricator",
+        "requires": [
+            {
+                "input": "Rotor",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Titanium Rod",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 6,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Hardening Agent",
+        "createdIn": "Furnace",
+        "requires": [
+            {
+                "input": "Sulfuric Acid",
+                "amountPerCycle": 5
+            },
+            {
+                "input": "Synthetic Silicon",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Applicator",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 4,
+            "nbUnits": 2
+        }
+    },
+    {
+        "id": "Heat Resistant Sheet",
+        "createdIn": "Furnace",
+        "requires": [
+            {
+                "input": "Wolfram Plate",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Titanium Sheet",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Glass",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 4,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Heat Shield",
+        "createdIn": "Constructorizer",
+        "requires": [
+            {
+                "input": "Epoxy",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Aerogel",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Ceramics",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Titanoferrite Ingot",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 12,
+            "nbUnits": 2
+        }
+    },
+    {
+        "id": "Heavy Ammo",
+        "createdIn": "Mega Press",
+        "requires": [
+            {
+                "input": "Basic Building Material",
+                "amountPerCycle": 24
+            },
+            {
+                "input": "Titanium Rod",
+                "amountPerCycle": 6
+            }
+        ],
+        "productionCycle": {
+            "seconds": 6,
+            "nbUnits": 15
+        }
+    },
+    {
+        "id": "Impeller",
+        "createdIn": "Mega Press",
+        "requires": [
+            {
+                "input": "Titanium Rod",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Heat Resistant Sheet",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Wolfram Plate",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Stabilizer",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 4,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Intermediate Building Material",
+        "createdIn": "Mega Press",
+        "requires": [
+            {
+                "input": "Basic Building Material",
+                "amountPerCycle": 40
+            },
+            {
+                "input": "Inductor",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Glass",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Titanium Housing",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 6,
+            "nbUnits": 25
+        }
+    },
+    {
+        "id": "Ion Bomb",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Ion Injector",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Ion Stabilizer",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Explosive Charge",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Reinforced Housing",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Resonator",
+                "amountPerCycle": 3
+            }
+        ],
+        "productionCycle": {
+            "seconds": 20,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Ion Injector",
+        "createdIn": "Compounder",
+        "requires": [
+            {
+                "input": "Applicator",
+                "amountPerCycle": 10
+            },
+            {
+                "input": "Electromagnet",
+                "amountPerCycle": 4
+            },
+            {
+                "input": "Pressure Tank",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 12,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Ion Stabilizer",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Synthetic Resin",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Liquid Helium",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Sulfuric Acid",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Plastic",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 1,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Ion Thrusters",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Pump",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Pressure Tank",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Ion Injector",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Nozzle",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 1,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Laser Emitter",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Lens",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Resonator",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Electromagnetic Coil",
+                "amountPerCycle": 6
+            }
+        ],
+        "productionCycle": {
+            "seconds": 6,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Lens",
+        "createdIn": "Compounder",
+        "requires": [
+            {
+                "input": "Glass",
+                "amountPerCycle": 10
+            },
+            {
+                "input": "Hardening Agent",
+                "amountPerCycle": 8
+            },
+            {
+                "input": "Synthetic Resin",
+                "amountPerCycle": 8
+            }
+        ],
+        "productionCycle": {
+            "seconds": 12,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Liquid Helium",
+        "createdIn": "Compounder",
+        "requires": [
+            {
+                "input": "Pressurized Helium",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Hardening Agent",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 3,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Main Engine Central Core",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Stabilizer",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Generator",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Accumulator",
+                "amountPerCycle": 4
+            },
+            {
+                "input": "Electromagnetic Coil",
+                "amountPerCycle": 8
+            }
+        ],
+        "productionCycle": {
+            "seconds": 1,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Mars Habitat Base",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Uberfilament",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Dome",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Airlock",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Pump",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Scaffolding",
+                "amountPerCycle": 3
+            }
+        ],
+        "productionCycle": {
+            "seconds": 20,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Victory_Item",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Scenario_Item_A",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Scenario_Item_B",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 3,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Micro Satellite",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Satellite Assembly",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Rocket Fuel",
+                "amountPerCycle": 6
+            }
+        ],
+        "productionCycle": {
+            "seconds": 1,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Missile Housing",
+        "createdIn": "Constructorizer",
+        "requires": [
+            {
+                "input": "Pressure Tank",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Reinforced Housing",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Nozzle",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Valve",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 15,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Molecular Scalpel",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Scanner",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "RNA Stabilizer",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Nanosyringe",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Lens",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Plastic",
+                "amountPerCycle": 4
+            }
+        ],
+        "productionCycle": {
+            "seconds": 20,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Nanofiber",
+        "createdIn": "Compounder",
+        "requires": [
+            {
+                "input": "Tube",
+                "amountPerCycle": 20
+            },
+            {
+                "input": "Liquid Helium",
+                "amountPerCycle": 5
+            }
+        ],
+        "productionCycle": {
+            "seconds": 5,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Nanosyringe",
+        "createdIn": "Constructorizer",
+        "requires": [
+            {
+                "input": "Nanofiber",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Applicator",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Lens",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Substance #FHS-135-493",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 12,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Neutrino Bomb",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Quantum Tranquilizer",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Ion Bomb",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Chemicals",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Reinforced Frame",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Reinforced Housing",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 30,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Neutrino Missile",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Neutrino Bomb",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Tracking Device",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Missile Housing",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Control Systems",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Basic Fuel",
+                "amountPerCycle": 5
+            }
+        ],
+        "productionCycle": {
+            "seconds": 8,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Nozzle",
+        "createdIn": "Mega Press",
+        "requires": [
+            {
+                "input": "Heat Resistant Sheet",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Helium-3",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Stabilizer",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 5,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Onboard Instruments",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Electronics",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Stabilizer",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Resonator",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Reinforced Housing",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 15,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Organ Producer",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Bioprinter",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Genome Alternator",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 6,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Organic Compound",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Sulfuric Acid",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Refined Oil",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Synthetic Resin",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 6,
+            "nbUnits": 2
+        }
+    },
+    {
+        "id": "Payload Stage",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Reinforced Housing",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Ion Thrusters",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Onboard Instruments",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Heat Shield",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Nanofiber",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 20,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Pistol Ammo",
+        "createdIn": "Fabricator",
+        "requires": [
+            {
+                "input": "Basic Building Material",
+                "amountPerCycle": 14
+            }
+        ],
+        "productionCycle": {
+            "seconds": 4,
+            "nbUnits": 25
+        }
+    },
+    {
+        "id": "Plasma Generator",
+        "createdIn": "Constructorizer",
+        "requires": [
+            {
+                "input": "Laser Emitter",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Generator",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Reinforced Housing",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Ion Injector",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 15,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Plasma Oxygen Converter",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Converter",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Pressure Tank",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Plasma Generator",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Electromagnetic Coil",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Tube",
+                "amountPerCycle": 3
+            }
+        ],
+        "productionCycle": {
+            "seconds": 30,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Plastic Dust",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Organic Compound",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Synthetic Resin",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Plastic",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Calcium Powder",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 1,
+            "nbUnits": 2
+        }
+    },
+    {
+        "id": "Pressure Tank",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Heat Resistant Sheet",
+                "amountPerCycle": 5
+            },
+            {
+                "input": "Titanium Housing",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Pump",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Valve",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 12,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Pressurized Helium",
+        "createdIn": "Refinery",
+        "requires": [
+            {
+                "input": "Helium-3",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Sulfur Ore",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 2,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Propulsion Stage",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Pressure Tank",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Rocket Engine",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Valve",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Pump",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Onboard Instruments",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 20,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Pseudorubber Insulator",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Plastic",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Epoxy",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Synthetic Resin",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Nanofiber",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 12,
+            "nbUnits": 2
+        }
+    },
+    {
+        "id": "Pump",
+        "createdIn": "Mega Press",
+        "requires": [
+            {
+                "input": "Valve",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Turbine",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Impeller",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Sulfuric Acid",
+                "amountPerCycle": 3
+            }
+        ],
+        "productionCycle": {
+            "seconds": 1,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Quantum Tranquilizer",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Ion Stabilizer",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Superconductor",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Ion Injector",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Sulfuric Acid",
+                "amountPerCycle": 3
+            }
+        ],
+        "productionCycle": {
+            "seconds": 15,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "RNA Stabilizer",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Organic Compound",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Applicator",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Synthetic Silicon",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Plastic",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 12,
+            "nbUnits": 2
+        }
+    },
+    {
+        "id": "RTSC",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Superconductor",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Plastic",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Aerogel",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Electromagnet",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 15,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "RTSC Generator",
+        "createdIn": "Constructorizer",
+        "requires": [
+            {
+                "input": "RTSC",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Generator",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Electromagnetic Coil",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Pseudorubber Insulator",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 20,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Refined Oil",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Powerium",
+                "amountPerCycle": 6
+            },
+            {
+                "input": "Wolfram Powder",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 2,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Reinforced Frame",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Tube",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Titanoferrite Ingot",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Titanium Beam",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Goethite Lattice",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 6,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Reinforced Housing",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Titanium Housing",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Wolfram Steel Ingot",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Wolfram Plate",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Goethite Lattice",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 6,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Resonator",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Accumulator",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Generator",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Liquid Helium",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 12,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Rocket Engine",
+        "createdIn": "Constructorizer",
+        "requires": [
+            {
+                "input": "Nozzle",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Turbine",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Pump",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Goethite Powder",
+                "amountPerCycle": 3
+            }
+        ],
+        "productionCycle": {
+            "seconds": 1,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Rocket Fuel",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Liquid Helium",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Basic Fuel",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Sulfuric Acid",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Plastic",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 15,
+            "nbUnits": 2
+        }
+    },
+    {
+        "id": "Rotor",
+        "createdIn": "Fabricator",
+        "requires": [
+            {
+                "input": "Titanium Rod",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Wolfram Wire",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 6,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Satellite Assembly",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Micro Satellite",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Propulsion Stage",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Payload Stage",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Heat Shield",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Rocket Fuel",
+                "amountPerCycle": 3
+            }
+        ],
+        "productionCycle": {
+            "seconds": 30,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Satellite Body",
+        "createdIn": "Constructorizer",
+        "requires": [
+            {
+                "input": "Reinforced Housing",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Reinforced Frame",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Plastic",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Heat Resistant Sheet",
+                "amountPerCycle": 3
+            }
+        ],
+        "productionCycle": {
+            "seconds": 15,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Scaffolding",
+        "createdIn": "Constructorizer",
+        "requires": [
+            {
+                "input": "Calcite Sheets",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Reinforced Frame",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Plastic Dust",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Nanofiber",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 12,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Scanner",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Lens",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Generator",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Stabilizer",
+                "amountPerCycle": 12
+            }
+        ],
+        "productionCycle": {
+            "seconds": 1,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Self-sustained Habitat",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Mars Habitat Base",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Plasma Oxygen Converter",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 12,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Shotgun Ammo",
+        "createdIn": "Mega Press",
+        "requires": [
+            {
+                "input": "Basic Building Material",
+                "amountPerCycle": 20
+            },
+            {
+                "input": "Calcium Powder",
+                "amountPerCycle": 6
+            }
+        ],
+        "productionCycle": {
+            "seconds": 6,
+            "nbUnits": 15
+        }
+    },
+    {
+        "id": "Synthetic Silicon",
+        "createdIn": "Furnace",
+        "requires": [
+            {
+                "input": "Calcium Powder",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Helium-3",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Ceramics",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 2,
+            "nbUnits": 2
+        }
+    },
+    {
+        "id": "Standard Ammo",
+        "createdIn": "Mega Press",
+        "requires": [
+            {
+                "input": "Basic Building Material",
+                "amountPerCycle": 18
+            },
+            {
+                "input": "Wolfram Powder",
+                "amountPerCycle": 4
+            }
+        ],
+        "productionCycle": {
+            "seconds": 6,
+            "nbUnits": 20
+        }
+    },
+    {
+        "id": "Stator",
+        "createdIn": "Fabricator",
+        "requires": [
+            {
+                "input": "Titanium Housing",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Wolfram Wire",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 3,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Substance #FHS-135-493",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Sulfuric Acid",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Plastic",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Liquid Helium",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Chemicals",
+                "amountPerCycle": 3
+            }
+        ],
+        "productionCycle": {
+            "seconds": 1,
+            "nbUnits": 2
+        }
+    },
+    {
+        "id": "Sulfuric Acid",
+        "createdIn": "Refinery",
+        "requires": [
+            {
+                "input": "Sulfur Ore",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Chemicals",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 0.5,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Superconductor",
+        "createdIn": "Compounder",
+        "requires": [
+            {
+                "input": "Ceramics",
+                "amountPerCycle": 7
+            },
+            {
+                "input": "Electromagnet",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Supermagnet",
+                "amountPerCycle": 8
+            }
+        ],
+        "productionCycle": {
+            "seconds": 5,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Supermagnet",
+        "createdIn": "Furnace",
+        "requires": [
+            {
+                "input": "Sulfuric Acid",
+                "amountPerCycle": 5
+            },
+            {
+                "input": "Wolfram Plate",
+                "amountPerCycle": 5
+            },
+            {
+                "input": "Chemicals",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 3,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Synthetic DNA",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Synthetic Protein",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Substance #FHS-135-493",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Nanosyringe",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Plastic",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 15,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Synthetic Fertilizer",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Liquid Helium",
+                "amountPerCycle": 8
+            },
+            {
+                "input": "Plastic Dust",
+                "amountPerCycle": 5
+            }
+        ],
+        "productionCycle": {
+            "seconds": 8,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Synthetic Protein",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Organic Compound",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Nanofiber",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Plastic",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Sulfuric Acid",
+                "amountPerCycle": 3
+            }
+        ],
+        "productionCycle": {
+            "seconds": 1,
+            "nbUnits": 2
+        }
+    },
+    {
+        "id": "Synthetic Resin",
+        "createdIn": "Compounder",
+        "requires": [
+            {
+                "input": "Hardening Agent",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Sulfuric Acid",
+                "amountPerCycle": 4
+            },
+            {
+                "input": "Calcite Sheets",
+                "amountPerCycle": 10
+            }
+        ],
+        "productionCycle": {
+            "seconds": 3,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Applicator",
+        "createdIn": "Fabricator",
+        "requires": [
+            {
+                "input": "Tube",
+                "amountPerCycle": 8
+            },
+            {
+                "input": "Glass",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 4,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Titanium Bar",
+        "createdIn": "Smelter",
+        "requires": [
+            {
+                "input": "Titanium Ore",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 2,
+            "nbUnits": 2
+        }
+    },
+    {
+        "id": "Titanium Beam",
+        "createdIn": "Fabricator",
+        "requires": [
+            {
+                "input": "Titanium Bar",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 3,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Titanium Housing",
+        "createdIn": "Furnace",
+        "requires": [
+            {
+                "input": "Titanium Beam",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Titanium Sheet",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 2,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Titanium Rod",
+        "createdIn": "Fabricator",
+        "requires": [
+            {
+                "input": "Titanium Bar",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 2,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Titanium Sheet",
+        "createdIn": "Fabricator",
+        "requires": [
+            {
+                "input": "Titanium Bar",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 2,
+            "nbUnits": 2
+        }
+    },
+    {
+        "id": "Tracking Device",
+        "createdIn": "Constructorizer",
+        "requires": [
+            {
+                "input": "Carbon Sonar",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Quantum Tranquilizer",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Lens",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Laser Emitter",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 20,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Tube",
+        "createdIn": "Fabricator",
+        "requires": [
+            {
+                "input": "Titanium Rod",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Titanium Sheet",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 2,
+            "nbUnits": 2
+        }
+    },
+    {
+        "id": "Turbine",
+        "createdIn": "Mega Press",
+        "requires": [
+            {
+                "input": "Impeller",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Stator",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Rotor",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Sulfuric Acid",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 6,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Plastic",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Refined Oil",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Sulfuric Acid",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 5,
+            "nbUnits": 3
+        }
+    },
+    {
+        "id": "Titanoferrite Ingot",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Titanium Bar",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Goethite Ore",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 1,
+            "nbUnits": 2
+        }
+    },
+    {
+        "id": "Wolfram Steel Ingot",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Wolfram Bar",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Goethite Ore",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 1,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Uberfilament",
+        "createdIn": "Assembler",
+        "requires": [
+            {
+                "input": "Nanofiber",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Plastic Dust",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Epoxy",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Sulfuric Acid",
+                "amountPerCycle": 3
+            }
+        ],
+        "productionCycle": {
+            "seconds": 15,
+            "nbUnits": 2
+        }
+    },
+    {
+        "id": "Valve",
+        "createdIn": "Mega Press",
+        "requires": [
+            {
+                "input": "Titanium Housing",
+                "amountPerCycle": 1
+            },
+            {
+                "input": "Titanium Beam",
+                "amountPerCycle": 3
+            },
+            {
+                "input": "Titanium Rod",
+                "amountPerCycle": 2
+            },
+            {
+                "input": "Nozzle",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 1,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Wolfram Bar",
+        "createdIn": "Smelter",
+        "requires": [
+            {
+                "input": "Wolfram Ore",
+                "amountPerCycle": 2
+            }
+        ],
+        "productionCycle": {
+            "seconds": 2,
+            "nbUnits": 2
+        }
+    },
+    {
+        "id": "Wolfram Plate",
+        "createdIn": "Fabricator",
+        "requires": [
+            {
+                "input": "Wolfram Bar",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 1,
+            "nbUnits": 1
+        }
+    },
+    {
+        "id": "Wolfram Powder",
+        "createdIn": "Furnace",
+        "requires": [
+            {
+                "input": "Wolfram Bar",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 2,
+            "nbUnits": 3
+        }
+    },
+    {
+        "id": "Wolfram Wire",
+        "createdIn": "Fabricator",
+        "requires": [
+            {
+                "input": "Wolfram Bar",
+                "amountPerCycle": 1
+            }
+        ],
+        "productionCycle": {
+            "seconds": 4,
+            "nbUnits": 2
+        }
+    },
+    {
+        "id": "Calcium Ore (Impure)",
+        "createdIn": "Ore Excavator",
+        "requires": [],
+        "productionCycle": {
+            "seconds": 2,
+            "nbUnits": 2
+        }
+    },
+    {
+        "id": "Calcium Ore (Pure)",
+        "createdIn": "Ore Excavator",
+        "requires": [],
+        "productionCycle": {
+            "seconds": 2,
+            "nbUnits": 8
+        }
+    },
+    {
+        "id": "Titanium Ore (Impure)",
+        "createdIn": "Ore Excavator",
+        "requires": [],
+        "productionCycle": {
+            "seconds": 2,
+            "nbUnits": 2
+        }
+    },
+    {
+        "id": "Titanium Ore (Pure)",
+        "createdIn": "Ore Excavator",
+        "requires": [],
+        "productionCycle": {
+            "seconds": 2,
+            "nbUnits": 8
+        }
+    },
+    {
+        "id": "Wolfram Ore (Impure)",
+        "createdIn": "Ore Excavator",
+        "requires": [],
+        "productionCycle": {
+            "seconds": 2,
+            "nbUnits": 2
+        }
+    },
+    {
+        "id": "Wolfram Ore (Pure)",
+        "createdIn": "Ore Excavator",
+        "requires": [],
+        "productionCycle": {
+            "seconds": 2,
+            "nbUnits": 8
+        }
+    }
+]

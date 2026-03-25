@@ -4,7 +4,7 @@
 
   @if (pendingFrom) {
   <span class="toolbar-hint">
-    Connecting <strong>{{ pendingFrom.label }}</strong> -
+    Connecting <strong>{{ pendingFrom.node.label }}</strong> -
     click a node's <span class="hint-port hint-in">input port</span> to complete,
     or press <kbd>Esc</kbd> to cancel
   </span>
@@ -19,9 +19,8 @@
 
 <!-- ── Canvas ─────────────────────────────────────────────────────────── -->
 <div class="canvas-container" cdkScrollable>
-  <div class="canvas-world" #canvasWorld [class.pending-mode]="pendingFrom"
-    [style.width.px]="canvasWidth()" [style.height.px]="canvasHeight()"
-    (mousemove)="onMouseMove($event)" (click)="pendingFrom = null">
+  <div class="canvas-world" #canvasWorld [class.pending-mode]="pendingFrom" [style.width.px]="canvasWidth()"
+    [style.height.px]="canvasHeight()" (mousemove)="onMouseMove($event)" (click)="pendingFrom = null">
 
     <!-- ── SVG arrow layer (above nodes via z-index, pointer-events pass-through) -->
     <svg class="arrows-svg" [attr.width]="canvasWidth()" [attr.height]="canvasHeight()">
@@ -63,33 +62,38 @@
 
     <!-- ── Draggable nodes ─────────────────────────────────────────────── -->
     @for (node of nodes(); track node.id) {
-    <div class="factory-node" [class.node-is-source]="pendingFrom?.id === node.id"
-      [class.node-is-target]="pendingFrom && pendingFrom.id !== node.id" [style.left.px]="node.x"
-      [style.top.px]="node.y" cdkDrag
-      (cdkDragMoved)="onDragMoved($event, node)" (cdkDragEnded)="onDragEnded($event, node)"
-      (click)="$event.stopPropagation()">
+    <div class="factory-node" [class.node-is-source]="pendingFrom?.node?.id === node.id"
+      [class.node-is-target]="pendingFrom && pendingFrom.node.id !== node.id" [style.left.px]="node.x"
+      [style.top.px]="node.y" cdkDrag (cdkDragMoved)="onDragMoved($event, node)"
+      (cdkDragEnded)="onDragEnded($event, node)" (click)="$event.stopPropagation()">
 
       <!-- Input port — left edge, accepts incoming arrows -->
-      <div class="port-in-wrapper">
-      @for (input of inputIds(node); track input) {
+      <div class="port-wrapper">
+        @for (input of inputIds(node); track input) {
         <div class="port port-in" title="Input - connect an arrow here" (click)="finishConn(node, input, $event)"></div>
-      }
+        }
       </div>
 
       <!-- Node body — drag handle + label + delete button -->
       <div class="node-body" cdkDragHandle>
         <div class="node-data">
           <span class="node-label" [title]="node.label">{{ node.label }}</span>
-          <span class="node-label" [class]="{'missing-formula': node.activeFormula === null}" [title]="node.activeFormula">{{ node.activeFormula || 'No formula selected' }}</span>
-          <span class="node-label" [class]="getInputStatusCss(node)" [title]="getInputStatus(node)">{{ getInputStatus(node) }}</span>
+          <span class="node-label" [class]="{'missing-formula': node.activeFormula === null}"
+            [title]="node.activeFormula">{{ node.activeFormula || 'No formula selected' }}</span>
+          <span class="node-label" [class]="getInputStatusCss(node)" [title]="getInputStatus(node)">{{
+            getInputStatus(node) }}</span>
         </div>
-        
+
         <button class="node-delete-btn" title="Delete node" (click)="deleteNode(node, $event)">✕</button>
       </div>
 
       <!-- Output port — right edge, starts an outgoing arrow -->
-      <div class="port port-out" [class.port-out-used]="hasOutgoing(node.id)" title="Output - click to start an arrow"
-        (click)="startConn(node, $event)"></div>
+      <div class="port-wrapper">
+        @for (output of outputIds(node); track output) {
+        <div class="port port-out" [class.port-out-used]="hasOutgoing(node.id, output)" title="Output - click to start an arrow"
+          (click)="startConn(node, output, $event)"></div>
+        }
+      </div>
 
     </div>
     }

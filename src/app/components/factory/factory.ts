@@ -9,10 +9,10 @@ import { ItemSelectDialog, ItemSelectDialogData } from '../item-select-dialog/it
 
 const NODE_W = 164;
 const NODE_H = 96;
-const INPUT_PORT_H = 16;
+const PORT_H = 16;
 const CANVAS_PADDING = 120;
 
-export interface FactoryNode {
+export interface FactoryCanvasNode {
   id: string;
   label: string;
   activeFormula: string | null;
@@ -21,11 +21,13 @@ export interface FactoryNode {
   /** Always {0,0} at rest; accumulates CDK transform during a drag, then absorbed into x/y on drop. */
   freeDragPos: { x: number; y: number };
   nbInputs: number;
+  nbOutputs: number;
 }
 
 export interface Connection {
   id: string;
   fromId: string;
+  fromOutputId: number;
   toId: string;
   toInputId: number;
 }
@@ -47,14 +49,15 @@ export class Factory {
   // ── Node state ──────────────────────────────────────────────────────────────
 
   // TODO extract this data from a service
-  readonly nodes = signal<FactoryNode[]>([
-    { id: 'n1', label: 'Ore extractor', activeFormula: 'Titanium Ore', x: 80, y: 240, freeDragPos: { x: 0, y: 0 }, nbInputs: 0 },
-    { id: 'n2', label: 'Ore extractor', activeFormula: 'Wolfram Ore', x: 100, y: 120, freeDragPos: { x: 0, y: 0 }, nbInputs: 0 },
-    { id: 'n3', label: 'Smelter', activeFormula: 'Titanium bar', x: 150, y: 380, freeDragPos: { x: 0, y: 0 }, nbInputs: 1 },
-    { id: 'n4', label: 'Smelter', activeFormula: 'Wolfram bar', x: 200, y: 380, freeDragPos: { x: 0, y: 0 }, nbInputs: 1 },
-    { id: 'n5', label: 'Fabricator', activeFormula: null, x: 380, y: 380, freeDragPos: { x: 0, y: 0 }, nbInputs: 2 },
-    { id: 'n6', label: 'Fabricator', activeFormula: null, x: 680, y: 260, freeDragPos: { x: 0, y: 0 }, nbInputs: 2 },
-    { id: 'n7', label: 'Furnace', activeFormula: null, x: 980, y: 260, freeDragPos: { x: 0, y: 0 }, nbInputs: 3 },
+  readonly nodes = signal<FactoryCanvasNode[]>([
+    { id: 'n1', label: 'Ore extractor', activeFormula: 'Titanium Ore', x: 80, y: 240, freeDragPos: { x: 0, y: 0 }, nbInputs: 0, nbOutputs: 1 },
+    { id: 'n2', label: 'Ore extractor', activeFormula: 'Wolfram Ore', x: 100, y: 120, freeDragPos: { x: 0, y: 0 }, nbInputs: 0, nbOutputs: 1 },
+    { id: 'n3', label: 'Smelter', activeFormula: 'Titanium bar', x: 150, y: 380, freeDragPos: { x: 0, y: 0 }, nbInputs: 1, nbOutputs: 1 },
+    { id: 'n4', label: 'Smelter', activeFormula: 'Wolfram bar', x: 200, y: 380, freeDragPos: { x: 0, y: 0 }, nbInputs: 1, nbOutputs: 1 },
+    { id: 'n5', label: 'Fabricator', activeFormula: null, x: 380, y: 380, freeDragPos: { x: 0, y: 0 }, nbInputs: 2, nbOutputs: 1 },
+    { id: 'n6', label: 'Fabricator', activeFormula: null, x: 680, y: 260, freeDragPos: { x: 0, y: 0 }, nbInputs: 2, nbOutputs: 1 },
+    { id: 'n7', label: 'Furnace', activeFormula: null, x: 980, y: 260, freeDragPos: { x: 0, y: 0 }, nbInputs: 3, nbOutputs: 1 },
+    { id: 'n8', label: 'Virtual source', activeFormula: null, x: 500, y: 660, freeDragPos: { x: 0, y: 0 }, nbInputs: 0, nbOutputs: 4 },
   ]);
 
   /**
@@ -84,12 +87,19 @@ export class Factory {
   connections: Connection[] = [];
 
   /** Node whose output port was clicked — awaiting a target input port click. */
-  pendingFrom: FactoryNode | null = null;
+  pendingFrom: {
+    node: FactoryCanvasNode,
+    outputId: number
+   } | null = null;
   /** Current mouse position on the canvas-world, used to draw the in-progress arrow. */
   pendingMouse = { x: 0, y: 0 };
 
-  inputIds(node: FactoryNode): number[] {
+  inputIds(node: FactoryCanvasNode): number[] {
     return _.range(0, node.nbInputs);
+  }
+
+  outputIds(node: FactoryCanvasNode): number[] {
+    return _.range(0, node.nbOutputs);
   }
 
   // ── Keyboard ────────────────────────────────────────────────────────────────
@@ -102,11 +112,11 @@ export class Factory {
   // ── Drag ────────────────────────────────────────────────────────────────────
 
   /** Visual top-left of the node, accounting for any in-flight CDK transform. */
-  visualPos(node: FactoryNode): { x: number; y: number } {
+  visualPos(node: FactoryCanvasNode): { x: number; y: number } {
     return { x: node.x + node.freeDragPos.x, y: node.y + node.freeDragPos.y };
   }
 
-  onDragMoved(ev: CdkDragMove, node: FactoryNode): void {
+  onDragMoved(ev: CdkDragMove, node: FactoryCanvasNode): void {
     // Read CDK's own transform for SVG path updates — do NOT feed this back to
     // [cdkDragFreeDragPosition] (that binding has been removed to avoid a
     // feedback loop where Angular CD re-applies the value CDK just computed).
@@ -117,7 +127,7 @@ export class Factory {
     this.nodes.update(ns => [...ns]);
   }
 
-  onDragEnded(ev: CdkDragEnd, node: FactoryNode): void {
+  onDragEnded(ev: CdkDragEnd, node: FactoryCanvasNode): void {
     const p = ev.source.getFreeDragPosition();
     // Absorb the CDK transform into the stored absolute position …
     node.x += p.x;
@@ -136,10 +146,17 @@ export class Factory {
     return `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
   }
 
-  private getIntputIdOffset(targetNode: FactoryNode, conn: Connection): number {
-    const remaining = NODE_H - targetNode.nbInputs * INPUT_PORT_H;
-    const spacing = remaining / (targetNode.nbInputs + 1);
-    return spacing * (conn.toInputId + 1) + INPUT_PORT_H * conn.toInputId + INPUT_PORT_H / 2;
+  private getOffset(nbPorts: number, portId: number): number {
+    const remaining = NODE_H - nbPorts * PORT_H;
+    const spacing = remaining / (nbPorts + 1);
+    return spacing * (portId + 1) + PORT_H * portId + PORT_H / 2;
+  }
+
+  private getOffsets(srcNode: FactoryCanvasNode, targetNode: FactoryCanvasNode, conn: Connection): { inputOffset: number, outputOffset: number } {
+    return {
+      inputOffset: this.getOffset(targetNode.nbInputs, conn.toInputId),
+      outputOffset: this.getOffset(srcNode.nbOutputs, conn.fromOutputId),
+    };
   }
 
   /** SVG path for an established connection (right-centre → left-centre). */
@@ -149,14 +166,15 @@ export class Factory {
     if (!f || !t) return '';
     const fp = this.visualPos(f);
     const tp = this.visualPos(t);
-    const inputIdOffset = this.getIntputIdOffset(t, conn);
-    return this.bezier(fp.x + NODE_W, fp.y + NODE_H / 2, tp.x, tp.y + inputIdOffset);
+    const offset = this.getOffsets(f, t, conn);
+    return this.bezier(fp.x + NODE_W, fp.y + offset.outputOffset, tp.x, tp.y + offset.inputOffset);
   }
 
   /** SVG path for the in-progress arrow while the user is picking a target. */
   pendingPath(): string {
     if (!this.pendingFrom) return '';
-    const fp = this.visualPos(this.pendingFrom);
+    const fp = this.visualPos(this.pendingFrom.node);
+    const offset = this.getOffset(this.pendingFrom.node.nbOutputs, this.pendingFrom.outputId);
     return this.bezier(fp.x + NODE_W, fp.y + NODE_H / 2, this.pendingMouse.x, this.pendingMouse.y);
   }
 
@@ -167,10 +185,10 @@ export class Factory {
     if (!f || !t) return null;
     const fp = this.visualPos(f);
     const tp = this.visualPos(t);
-    const inputIdOffset = this.getIntputIdOffset(t, conn);
+    const offset = this.getOffsets(f, t, conn);
     return {
       x: (fp.x + NODE_W + tp.x) / 2,
-      y: (fp.y + NODE_H / 2 + tp.y + inputIdOffset) / 2,
+      y: (fp.y + offset.outputOffset + tp.y + offset.inputOffset) / 2,
     };
   }
 
@@ -178,27 +196,30 @@ export class Factory {
 
   /** Click on a node's output port: begin drawing a new arrow from this node.
    *  Removes any pre-existing outgoing connection (only 1 is allowed). */
-  startConn(node: FactoryNode, ev: MouseEvent): void {
+  startConn(node: FactoryCanvasNode, outputId: number, ev: MouseEvent): void {
     ev.stopPropagation();
-    this.connections = this.connections.filter(c => c.fromId !== node.id);
-    this.pendingFrom = node;
+    // remove connections starting at output
+    this.connections = this.connections.filter(c => !(c.fromId === node.id && c.fromOutputId === outputId));
+    this.pendingFrom = {node, outputId};
     // Pre-position the pending arrow tip so it doesn't jump on first render
     const fp = this.visualPos(node);
     this.pendingMouse = { x: fp.x + NODE_W + 4, y: fp.y + NODE_H / 2 };
   }
 
   /** Click on a node's input port: complete the pending arrow. */
-  finishConn(node: FactoryNode, inputId: number, ev: MouseEvent): void {
+  finishConn(node: FactoryCanvasNode, inputId: number, ev: MouseEvent): void {
     ev.stopPropagation();
     if (!this.pendingFrom) return;
-    if (this.pendingFrom.id === node.id) {
+    if (this.pendingFrom.node.id === node.id) {
       // Clicked own input — cancel
       this.pendingFrom = null;
       return;
     }
+    // remove connections arriving at input port
+    this.connections = this.connections.filter(c => !(c.toId === node.id && c.toInputId === inputId));
     this.connections = [
       ...this.connections,
-      { id: `c${Date.now()}`, fromId: this.pendingFrom.id, toId: node.id, toInputId: inputId },
+      { id: `c${Date.now()}`, fromId: this.pendingFrom.node.id, toId: node.id, toInputId: inputId, fromOutputId: this.pendingFrom.outputId },
     ];
     this.pendingFrom = null;
   }
@@ -208,8 +229,8 @@ export class Factory {
     this.connections = this.connections.filter(c => c.id !== id);
   }
 
-  hasOutgoing(nodeId: string): boolean {
-    return this.connections.some(c => c.fromId === nodeId);
+  hasOutgoing(nodeId: string, outputId: number): boolean {
+    return this.connections.some(c => c.fromId === nodeId && c.fromOutputId === outputId);
   }
 
   // ── Mouse tracking ──────────────────────────────────────────────────────────
@@ -238,36 +259,37 @@ export class Factory {
     ref.afterClosed().subscribe(selected => {
       if (!selected) return;
       const id = `n${this.nodes().length + 1}`;
-      const newNode: FactoryNode = {
+      const newNode: FactoryCanvasNode = {
         id,
         label: selected,
         activeFormula: null,
         x: 120 + Math.random() * 600,
         y: 80 + Math.random() * 600,
         freeDragPos: { x: 0, y: 0 },
-        nbInputs: 1,  // TODO check inputs
+        nbInputs: 1,  // TODO check inputs,
+        nbOutputs: 1 // TODO check outputs
       };
       this.nodes.update(ns => [...ns, newNode]);
     });
   }
 
-  deleteNode(node: FactoryNode, ev: MouseEvent): void {
+  deleteNode(node: FactoryCanvasNode, ev: MouseEvent): void {
     ev.stopPropagation();
     this.nodes.update(ns => ns.filter(n => n.id !== node.id));
     this.connections = this.connections.filter(
       c => c.fromId !== node.id && c.toId !== node.id,
     );
-    if (this.pendingFrom?.id === node.id) this.pendingFrom = null;
+    if (this.pendingFrom?.node.id === node.id) this.pendingFrom = null;
   }
 
   trackById = (_: number, item: { id: string }) => item.id;
 
-  getInputStatusCss(node: FactoryNode): string | null {
+  getInputStatusCss(node: FactoryCanvasNode): string | null {
     // TODO, check if missing input or inefficient
     return null;
   }
 
-  getInputStatus(node: FactoryNode): string {
+  getInputStatus(node: FactoryCanvasNode): string {
     // TODO, similar to getInputStatusCss - logic is more complex
     const nbInputs = this.connections.filter(
       c => c.toId === node.id,

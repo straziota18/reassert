@@ -3,14 +3,15 @@ export interface UniverseObject {
 }
 
 export interface Factory {
-    energyConsumption?: number;
-    coreLoadConsumption?: number;
+    energyConsumption: number;
+    coreLoadConsumption: number;
+    nbInputs: number;
 }
 
 export interface Resource extends UniverseObject {
     createdIn: Factory;
-    requires: Resource[];
-    productionPerMinute: number;
+    requires: {input: Resource, amountPerCycle: number}[];
+    productionCycle: {seconds: number, nbUnits: number};
 }
 
 export interface Universe {
