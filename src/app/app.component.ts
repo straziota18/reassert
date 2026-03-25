@@ -15,7 +15,6 @@ interface NavItem {
   label: string;
   icon: string;
   route: string;
-  action?: boolean;
 }
 
 @Component({
@@ -45,9 +44,9 @@ export class AppComponent implements OnInit {
   activeRoute = '';
 
   navItems: NavItem[] = [    
-    { label: 'Factory Layout',      icon: 'factory',        route: '/factory' },
+    { label: 'Factory Layout',      icon: 'factory',        route: '/factory-layout' },
+    { label: 'Factory Inventory',   icon: 'edit_document', route: '/factoy-inventory' },
     { label: 'Production Schedule', icon: 'calendar_month', route: '/schedule' },
-    { label: 'Upload Data',         icon: 'upload_file',    route: '/upload',   action: true },
   ];
 
   constructor(

@@ -50,15 +50,6 @@
   }
 }
 
-// Upload action item — subtle copper accent
-.action-item:not(.active-nav-item) {
-  color: var(--mat-sys-tertiary);
-
-  mat-icon {
-    color: var(--mat-sys-tertiary);
-  }
-}
-
 // Dark mode footer
 .sidenav-footer {
   margin-top: auto;
