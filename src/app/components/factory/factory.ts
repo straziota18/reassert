@@ -1,4 +1,4 @@
-import { Component, computed, ElementRef, HostListener, Signal, signal, ViewChild } from '@angular/core';
+import { Component, computed, ElementRef, HostListener, inject, Signal, signal, ViewChild } from '@angular/core';
 import { CdkDrag, CdkDragEnd, CdkDragHandle, CdkDragMove } from '@angular/cdk/drag-drop';
 import { CdkScrollable } from '@angular/cdk/scrolling';
 import { MatAnchor, MatButton } from "@angular/material/button";
@@ -6,7 +6,9 @@ import { MatIcon } from "@angular/material/icon";
 import * as _ from 'lodash';
 import { MatDialog } from '@angular/material/dialog';
 import { ItemSelectDialog, ItemSelectDialogData } from '../item-select-dialog/item-select-dialog';
-import { FactoryCanvasNode, Connection, getNbInputs, getNbOutputs, getNodeLabel, isMissingFormula, isActiveFactory, getActiveFormulaSignal } from '../../services/model';
+import { FactoryCanvasNode, Connection, getNbInputs, getNbOutputs, getNodeLabel, isMissingFormula, isActiveFactory, ActiveFactory } from '../../services/model';
+import { UserSessionService } from '../../services/user-session-service';
+import { OptimizationService } from '../../services/optimization-service';
 
 const NODE_W = 164;
 const NODE_H = 96;
@@ -22,20 +24,35 @@ const CANVAS_PADDING = 120;
 export class Factory {
   @ViewChild('canvasWorld') canvasWorldRef!: ElementRef<HTMLDivElement>;
 
+  private readonly userSessionService: UserSessionService = inject(UserSessionService);
+  private readonly optimizationService: OptimizationService = inject(OptimizationService);
+
   readonly NW = NODE_W;
   readonly NH = NODE_H;
 
   readonly getNodeLabel = getNodeLabel;
   readonly isMissingFormula = isMissingFormula;
   readonly isActiveFactory = isActiveFactory;
-  readonly activeFormulaSignals: {[id: string]: Signal<string>} = {};
 
   constructor(private readonly matDialog: MatDialog) { }
 
-  // ── Node state ──────────────────────────────────────────────────────────────
+  readonly nodes = computed(() => {
+    const activeLayout = this.userSessionService.activeLayout();
+    if (!activeLayout) {
+      return [];
+    }
+    return activeLayout.factories();
+  });
 
-  // TODO extract this data from a service
-  readonly nodes = signal<FactoryCanvasNode[]>([]);
+  readonly connections = computed(() => {
+    const activeLayout = this.userSessionService.activeLayout();
+    if (!activeLayout) {
+      return [];
+    }
+    return activeLayout.connections();
+  });
+
+  // ── Node state ──────────────────────────────────────────────────────────────
 
   /**
    * Canvas width derived from the rightmost node edge + padding.
@@ -58,10 +75,6 @@ export class Factory {
     const maxY = Math.max(...ns.map(n => this.visualPos(n).y + NODE_H));
     return maxY + CANVAS_PADDING;
   });
-
-  // ── Connections ─────────────────────────────────────────────────────────────
-
-  connections: Connection[] = [];
 
   /** Node whose output port was clicked — awaiting a target input port click. */
   pendingFrom: {
@@ -101,7 +114,7 @@ export class Factory {
     node.freeDragPos = { x: p.x, y: p.y };
     // Spread the array so canvasWidth / canvasHeight computed signals re-evaluate
     // and the SVG arrows track the moving node.
-    this.nodes.update(ns => [...ns]);
+    this.userSessionService.updateNode(node);
   }
 
   onDragEnded(ev: CdkDragEnd, node: FactoryCanvasNode): void {
@@ -112,7 +125,7 @@ export class Factory {
     // … then reset freeDragPos and let CDK reset its own internal transform.
     node.freeDragPos = { x: 0, y: 0 };
     ev.source.reset();
-    this.nodes.update(ns => [...ns]);
+    this.userSessionService.updateNode(node);
   }
 
   // ── SVG helpers ─────────────────────────────────────────────────────────────
@@ -175,8 +188,6 @@ export class Factory {
    *  Removes any pre-existing outgoing connection (only 1 is allowed). */
   startConn(node: FactoryCanvasNode, outputId: number, ev: MouseEvent): void {
     ev.stopPropagation();
-    // remove connections starting at output
-    this.connections = this.connections.filter(c => !(c.fromId === node.id && c.fromOutputId === outputId));
     this.pendingFrom = { node, outputId };
     // Pre-position the pending arrow tip so it doesn't jump on first render
     const fp = this.visualPos(node);
@@ -192,22 +203,17 @@ export class Factory {
       this.pendingFrom = null;
       return;
     }
-    // remove connections arriving at input port
-    this.connections = this.connections.filter(c => !(c.toId === node.id && c.toInputId === inputId));
-    this.connections = [
-      ...this.connections,
-      { id: `c${Date.now()}`, fromId: this.pendingFrom.node.id, toId: node.id, toInputId: inputId, fromOutputId: this.pendingFrom.outputId },
-    ];
+    this.userSessionService.createConnection(this.pendingFrom.node, this.pendingFrom.outputId, node, inputId);
     this.pendingFrom = null;
   }
 
   deleteConn(id: string, ev: MouseEvent): void {
     ev.stopPropagation();
-    this.connections = this.connections.filter(c => c.id !== id);
+    this.userSessionService.removeConnection(id);
   }
 
   hasOutgoing(nodeId: string, outputId: number): boolean {
-    return this.connections.some(c => c.fromId === nodeId && c.fromOutputId === outputId);
+    return this.connections().some(c => c.fromId === nodeId && c.fromOutputId === outputId);
   }
 
   // ── Mouse tracking ──────────────────────────────────────────────────────────
@@ -221,40 +227,33 @@ export class Factory {
   // ── Node CRUD ───────────────────────────────────────────────────────────────
 
   addNode(): void {
-    const ref = this.matDialog.open<ItemSelectDialog, ItemSelectDialogData, string>(
-      ItemSelectDialog,
-      {
-        data: {
-          title: 'Select a factory',
-          items: ['Ore extractor', 'Smelter', 'Fabricator', 'Furnace'],  // TODO get list of factories
+    this.optimizationService.loadUniverse().then(universe => {
+      const ref = this.matDialog.open<ItemSelectDialog, ItemSelectDialogData, string>(
+        ItemSelectDialog,
+        {
+          data: {
+            title: 'Select a factory',
+            items: Object.keys(universe.factories)
         },
-        width: '420px',
-        maxWidth: '95vw',
-      }
-    );
+          width: '420px',
+          height: '65vh',
+          maxWidth: '95vw',
+          maxHeight: '90vh',
+        }
+      );
 
-    ref.afterClosed().subscribe(selected => {
-      if (!selected) return;
-      // TODO fix with actual service
-      // const id = `n${this.nodes().length + 1}`; // pick a unique id
-      // const newNode: FactoryCanvasNode = {
-      //   id,
-      //   label: selected,
-      //   activeFormula: null,
-      //   x: 120 + Math.random() * 600,
-      //   y: 80 + Math.random() * 600,
-      //   freeDragPos: { x: 0, y: 0 },
-      // };
-      // this.nodes.update(ns => [...ns, newNode]);
+      ref.afterClosed().subscribe(selected => {
+        if (!selected) return;
+        const factory = universe.factories[selected];
+        this.userSessionService.addNewFactory(factory, null);
+      });
     });
   }
 
   deleteNode(node: FactoryCanvasNode, ev: MouseEvent): void {
     ev.stopPropagation();
-    this.nodes.update(ns => ns.filter(n => n.id !== node.id));
-    this.connections = this.connections.filter(
-      c => c.fromId !== node.id && c.toId !== node.id,
-    );
+    this.userSessionService.removeNode(node);
+
     if (this.pendingFrom?.node.id === node.id) this.pendingFrom = null;
   }
 
@@ -267,13 +266,34 @@ export class Factory {
 
   getInputStatus(node: FactoryCanvasNode): string {
     // TODO, similar to getInputStatusCss - logic is more complex
-    const nbInputs = this.connections.filter(
+    const nbInputs = this.connections().filter(
       c => c.toId === node.id,
     ).length;
     return getNbInputs(node) === 0 ? 'Raw material' : `${nbInputs}/${getNbInputs(node)} inputs available`;
   }
 
   startFormulaChange(node: FactoryCanvasNode) {
-    // TODO open dialog, select possible resource, etc
+    this.optimizationService.loadUniverse().then(universe => {
+      const ref = this.matDialog.open<ItemSelectDialog, ItemSelectDialogData, string>(
+        ItemSelectDialog,
+        {
+          data: {
+            title: 'Select a recipe',
+            items: Object.values(universe.resources).filter(r => r.createdIn.id === node.factory.id).map(it => it.id)
+        },
+          width: '420px',
+          height: '65vh',
+          maxWidth: '95vw',
+          maxHeight: '90vh',
+        }
+      );
+
+      ref.afterClosed().subscribe(selected => {
+        if (!selected) return;
+        const resource = universe.resources[selected];
+        (<ActiveFactory>node.factory).activeRecipe.set(resource);
+        this.userSessionService.updateNode(node);
+      });
+    });
   }
 }

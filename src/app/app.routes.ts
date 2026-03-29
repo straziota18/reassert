@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-  { path: '',                 redirectTo: 'factory', pathMatch: 'full' },
+  { path: '',                 redirectTo: 'factory-layout', pathMatch: 'full' },
   { path: 'factory-layout',  loadComponent: () => import('./components/factory/factory').then(m => m.Factory) },
   { path: 'factory-inventory', loadComponent: () => import('./components/factory-inventory/factory-inventory').then(m => m.FactoryInventory) },
   { path: 'schedule',        loadComponent: () => import('./components/schedule/schedule').then(m => m.Schedule) },

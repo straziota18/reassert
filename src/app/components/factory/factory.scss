@@ -281,6 +281,10 @@
     &.missing-formula {
       font-style: italic;
     }
+
+    &.clickable {
+      cursor: pointer;
+    }
   }
 }
 

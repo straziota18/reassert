@@ -21,6 +21,16 @@ export interface VirtualFactory extends ReassertObject {
     outputs: {resource: Resource, amountPerMinute: number}[];
 }
 
+export const createActiveFactory: (factory: Factory, activeRecipe: Resource | null) => ActiveFactory = (factory, activeRecipe) => {
+    return {
+        id: factory.id,
+        nbInputs: factory.nbInputs,
+        energyConsumption: factory.energyConsumption,
+        coreLoadConsumption: factory.coreLoadConsumption,
+        activeRecipe: signal(activeRecipe)
+    };
+};
+
 export interface Resource extends ReassertObject {
     createdIn: Factory;
     requires: {input: Resource, amountPerCycle: number}[];
@@ -38,6 +48,7 @@ export interface FactoryCanvasNode extends ReassertObject {
   y: number;
   /** Always {0,0} at rest; accumulates CDK transform during a drag, then absorbed into x/y on drop. */
   freeDragPos: { x: number; y: number };
+  activeFormula: Signal<string>
 }
 
 export const getNbInputs: (node: FactoryCanvasNode) => number = (node: FactoryCanvasNode) => {
@@ -50,16 +61,6 @@ export const getNbOutputs: (node: FactoryCanvasNode) => number = (node: FactoryC
 
 export const getNodeLabel: (node: FactoryCanvasNode) => string = (node: FactoryCanvasNode) => {
     return !_.hasIn(node, 'outputs') ? (<ActiveFactory>node.factory).id : 'Virtual source';
-};
-
-export const getActiveFormulaSignal: (node: FactoryCanvasNode) => Signal<string> = (node: FactoryCanvasNode) => {
-    if (_.hasIn(node, 'outputs')) {
-        return signal('Virtual source');
-    }
-    return computed(() => {
-        const activeRecipe = (<ActiveFactory>node.factory).activeRecipe();
-        return activeRecipe === null ? 'No recipe selected' : activeRecipe.id;
-    });
 };
 
 export const isActiveFactory: (node: FactoryCanvasNode) => boolean = (node: FactoryCanvasNode) => {
@@ -78,6 +79,6 @@ export interface Connection extends ReassertObject {
 }
 
 export interface FactoryLayout extends ReassertObject {
-    factories: FactoryCanvasNode[];
-    connections: Connection[];
+    factories: WritableSignal<FactoryCanvasNode[]>;
+    connections: WritableSignal<Connection[]>;
 }

@@ -18,8 +18,18 @@ body {
 }
 
 :root {
-  @include mat.sidenav-overrides((
-    container-background-color: var(--mat-sys-surface-container),
-    container-text-color: var(--mat-sys-on-surface),
-  ));
+  @include mat.sidenav-overrides((container-background-color: var(--mat-sys-surface-container),
+      container-text-color: var(--mat-sys-on-surface),
+    ));
+}
+
+// material overrides
+.mat-mdc-dialog-surface {
+  height: auto !important;
+  max-height: 90vh;
+}
+
+mat-dialog-content,
+.mat-mdc-dialog-content {
+  max-height: none; // let the surface constraint do the work
 }

@@ -1,4 +1,4 @@
-import { inject, Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable, Signal, signal } from '@angular/core';
 import {
   ActiveFactory,
   Connection,
@@ -7,6 +7,7 @@ import {
   VirtualFactory,
 } from './model';
 import { OptimizationService } from './optimization-service';
+import * as _ from 'lodash';
 
 // ---------------------------------------------------------------------------
 // Serialization types – stored verbatim in localStorage
@@ -109,8 +110,8 @@ export class ObjectStoreService {
   private serializeLayout(layout: FactoryLayout): SerializedFactoryLayout {
     return {
       id: layout.id,
-      connections: layout.connections.map(c => ({ ...c })),
-      factories: layout.factories.map(n => this.serializeNode(n)),
+      connections: layout.connections().map(c => ({ ...c })),
+      factories: layout.factories().map(n => this.serializeNode(n)),
     };
   }
 
@@ -166,8 +167,8 @@ export class ObjectStoreService {
 
         resolve({
           id: serialized.id,
-          connections: serialized.connections.map(c => ({ ...c })),
-          factories,
+          connections: signal(serialized.connections.map(c => ({ ...c }))),
+          factories: signal(factories),
         });
       }).catch(err => reject(err));
 
@@ -179,12 +180,23 @@ export class ObjectStoreService {
     sn: SerializedFactoryCanvasNode,
     universe: Awaited<ReturnType<OptimizationService['loadUniverse']>>,
   ): FactoryCanvasNode {
+    const deserializedFactory = this.deserializeFactory(sn.factory, universe);
+    let activeFormulaSignal: Signal<string>;
+    if (_.hasIn(deserializedFactory, 'outputs')) {
+      activeFormulaSignal = signal('Virtual source');
+    } else {
+      activeFormulaSignal = computed(() => {
+        const activeRecipe = (<ActiveFactory>deserializedFactory).activeRecipe();
+        return activeRecipe === null ? 'No recipe selected' : activeRecipe.id;
+      });
+    }
     return {
       id: sn.id,
-      factory: this.deserializeFactory(sn.factory, universe),
+      factory: deserializedFactory,
       x: sn.x,
       y: sn.y,
       freeDragPos: { ...sn.freeDragPos },
+      activeFormula: activeFormulaSignal 
     };
   }
 

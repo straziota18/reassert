@@ -1,7 +1,7 @@
-import { inject, Injectable, signal, WritableSignal } from '@angular/core';
+import { computed, inject, Injectable, signal, WritableSignal } from '@angular/core';
 import { ObjectStoreService } from './object-store-service';
 import { OptimizationService } from './optimization-service';
-import { FactoryLayout } from './model';
+import { Connection, createActiveFactory, Factory, FactoryCanvasNode, FactoryLayout, Resource } from './model';
 
 const ACTIVE_LAYOUT_KEY = 'reassert:active-layout-id';
 
@@ -13,18 +13,6 @@ export class UserSessionService {
   private readonly objectStoreService = inject(ObjectStoreService);
 
   readonly activeLayout: WritableSignal<FactoryLayout | null> = signal(null);
-
-  private initEmptyLayout() {
-    const newLayout: FactoryLayout = {
-      id: 'Global layout',
-      factories: [],
-      connections: [],
-    };
-
-    this.objectStoreService.saveLayout(newLayout);
-    localStorage.setItem(ACTIVE_LAYOUT_KEY, newLayout.id);
-    this.activeLayout.set(newLayout);
-  }
 
   initialize(): Promise<void> {
     return new Promise<void>((resolve, reject) => {
@@ -46,5 +34,97 @@ export class UserSessionService {
 
       resolve()
     });
+  }
+
+  private initEmptyLayout() {
+    const newLayout: FactoryLayout = {
+      id: 'Global layout',
+      factories: signal([]),
+      connections: signal([]),
+    };
+
+    this.objectStoreService.saveLayout(newLayout);
+    localStorage.setItem(ACTIVE_LAYOUT_KEY, newLayout.id);
+    this.activeLayout.set(newLayout);
+  }
+
+  public updateNode(node: FactoryCanvasNode) {
+    const activeLayout = this.activeLayout();
+    if (!activeLayout) {
+      return;
+    }
+    const existingFactories = activeLayout.factories();
+    if (existingFactories.findIndex(it => it.id === node.id) === -1) {
+      throw new Error(`Expecting node ${node.id} to exist in active layout ${activeLayout.id}`);
+    }
+    activeLayout.factories.set([...existingFactories]);
+    this.objectStoreService.saveLayout(activeLayout);
+  }
+
+  public removeNode(node: FactoryCanvasNode) {
+    const activeLayout = this.activeLayout();
+    if (!activeLayout) {
+      return;
+    }
+
+    activeLayout.factories.update(ns => ns.filter(n => n.id !== node.id));
+    activeLayout.connections.update(connections => connections.filter(
+      c => c.fromId !== node.id && c.toId !== node.id,
+    ));
+
+    this.objectStoreService.saveLayout(activeLayout);
+  }
+
+  public createConnection(fromNode: FactoryCanvasNode, fromOutputId: number, toNode: FactoryCanvasNode, toInputId: number) {
+    const activeLayout = this.activeLayout();
+    if (!activeLayout) {
+      return;
+    }
+
+    const newConnection: Connection = {
+      id: crypto.randomUUID(),
+      fromId: fromNode.id,
+      fromOutputId: fromOutputId,
+      toId: toNode.id,
+      toInputId: toInputId
+    };
+    activeLayout.connections.update(connections => [
+      ...connections.filter(c => !(c.toId === toNode.id && c.toInputId === toInputId)),
+      newConnection
+    ]);
+    this.objectStoreService.saveLayout(activeLayout);
+  }
+
+  public removeConnection(connectionId: string) {
+    const activeLayout = this.activeLayout();
+    if (!activeLayout) {
+      return;
+    }
+    activeLayout.connections.update(connections => connections.filter(c => c.id !== connectionId));
+    this.objectStoreService.saveLayout(activeLayout);
+  }
+
+  public addNewFactory(factory: Factory, activeRecipe: Resource | null) {
+    const activeLayout = this.activeLayout();
+    if (!activeLayout) {
+      return;
+    }
+    activeLayout.factories.update((existingFactories) => {
+      const activeFactory = createActiveFactory(factory, activeRecipe);
+      const newFactory: FactoryCanvasNode = {
+        id: crypto.randomUUID(),
+        factory: activeFactory,
+        x: 0,
+        y: 0,
+        freeDragPos: { x: 0, y: 0 },
+        activeFormula: computed(() => {
+          const r = activeFactory.activeRecipe();
+          return r === null ? 'No recipe selected' : r.id;
+        })
+      };
+      return [...existingFactories, newFactory];
+    });
+
+    this.objectStoreService.saveLayout(activeLayout);
   }
 }

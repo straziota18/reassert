@@ -61,7 +61,7 @@ export class FactoryInventory implements OnInit {
       const virtualRows: InventoryRow[] = [];
 
       const processLayout = async (layout: FactoryLayout): Promise<void> => {
-        for (const node of layout.factories) {
+        for (const node of layout.factories()) {
           const factory = node.factory;
 
           if ('outputs' in factory) {

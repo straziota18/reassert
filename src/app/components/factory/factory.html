@@ -36,7 +36,7 @@
       </defs>
 
       <!-- Established connections -->
-      @for (conn of connections; track conn.id) {
+      @for (conn of connections(); track conn.id) {
       <g class="connection-group">
         <!-- Wider invisible stroke for easier hover/click targeting -->
         <path [attr.d]="arrowPath(conn)" class="arrow-hit-area" />
@@ -80,7 +80,7 @@
           <span class="node-label" [title]="getNodeLabel(node)">{{ getNodeLabel(node) }}</span>
           <span class="node-label" (click)="startFormulaChange(node)"
             [class]="{'missing-formula': isMissingFormula(node), 'clickable': isActiveFactory(node)}"
-            [title]="activeFormulaSignals[node.id]()">{{ activeFormulaSignals[node.id]() }}</span>
+            [title]="node.activeFormula()">{{ node.activeFormula() }}</span>
           <span class="node-label" [class]="getInputStatusCss(node)" [title]="getInputStatus(node)">{{
             getInputStatus(node) }}</span>
         </div>

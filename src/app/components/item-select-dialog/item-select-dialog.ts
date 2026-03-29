@@ -1,4 +1,4 @@
-import { Component, computed, effect, ElementRef, inject, QueryList, signal, ViewChildren } from '@angular/core';
+import { AfterViewInit, Component, computed, effect, ElementRef, inject, QueryList, signal, ViewChildren } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -28,8 +28,9 @@ export interface ItemSelectDialogData {
   templateUrl: './item-select-dialog.html',
   styleUrl: './item-select-dialog.scss',
 })
-export class ItemSelectDialog {
+export class ItemSelectDialog implements AfterViewInit {
   private readonly dialogRef = inject<MatDialogRef<ItemSelectDialog, string>>(MatDialogRef);
+  private readonly el = inject(ElementRef<HTMLElement>);
   readonly data = inject<ItemSelectDialogData>(MAT_DIALOG_DATA);
 
   @ViewChildren('itemEl') itemElements!: QueryList<ElementRef<HTMLElement>>;
@@ -39,9 +40,10 @@ export class ItemSelectDialog {
 
   readonly filteredItems = computed(() => {
     const q = this.query().trim().toLowerCase();
-    return q
+    const filteredItems = q
       ? this.data.items.filter(item => item.toLowerCase().includes(q))
       : this.data.items;
+    return filteredItems.sort((a, b) => a.localeCompare(b));
   });
 
   constructor() {
@@ -50,6 +52,16 @@ export class ItemSelectDialog {
       this.query();
       this.highlightedIndex.set(0);
     });
+  }
+
+  ngAfterViewInit(): void {
+    // Capture the dialog's rendered size and lock it so that filtering items
+    // (which changes the list height) cannot cause the panel to resize.
+    const surface = (
+      this.el.nativeElement.closest('.mat-mdc-dialog-surface') as HTMLElement | null
+    ) ?? this.el.nativeElement.parentElement!;
+    const { width, height } = surface.getBoundingClientRect();
+    this.dialogRef.updateSize(`${Math.round(width)}px`, `${Math.round(height)}px`);
   }
 
   onKeydown(event: KeyboardEvent): void {
