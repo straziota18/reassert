@@ -1,7 +1,7 @@
 import { computed, inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { ObjectStoreService } from './object-store-service';
 import { OptimizationService } from './optimization-service';
-import { ActiveFactory, Connection, createActiveFactory, Factory, FactoryCanvasNode, FactoryLayout, FactoryProblem, isActiveFactory, Resource, VirtualFactory } from './model';
+import { ActiveFactory, Connection, createActiveFactory, Factory, FactoryCanvasNode, FactoryLayout, isActiveFactory, isVirtualLayout, Resource, VirtualFactory } from './model';
 import * as _ from 'lodash';
 
 const ACTIVE_LAYOUT_KEY = 'reassert:active-layout-id';
@@ -15,33 +15,90 @@ export class UserSessionService {
 
   readonly activeLayout: WritableSignal<FactoryLayout | null> = signal(null);
 
-  readonly factoryProblems: Signal<{[factoryId: string]: FactoryProblem}> = computed(() => {
+  readonly factoryProblems: Signal<{[factoryId: string]: string}> = computed(() => {
     const activeLayout = this.activeLayout();
     if (activeLayout === null) {
       return {};
     }
     const connections = activeLayout.connections();
     const factories = activeLayout.factories();
-    const factoryProductions: {[factoryId: string]: {
-      [resouceId: string]: {
-        productionPerMinute: number,
-        consumptionPerMinute: number,
+
+    const nodeById = new Map(factories.map(f => [f.id, f]));
+    const result: {[factoryId: string]: string} = {};
+
+    for (const node of factories) {
+      if (!isActiveFactory(node)) continue;
+
+      const activeFactory = node.factory as ActiveFactory;
+      const recipe = activeFactory.activeRecipe();
+
+      // Check 1: No active formula
+      if (recipe === null) {
+        result[node.id] = 'Factory is idle';
+        continue;
       }
-    }} = _.fromPairs(factories.map(f => {
-      if (isActiveFactory(f)) {
-        return [];
-      } else {
-        const virtualFactory = f.factory as VirtualFactory;
-        const outputs = virtualFactory.outputs.map(it => {
-          return [it.resource.id, it.amountPerMinute];
-        });
-        return [f.id, _.fromPairs(outputs)];
+
+      const requiredInputs = recipe.requires;
+      if (requiredInputs.length === 0) continue;
+
+      const incomingConnections = connections.filter(c => c.toId === node.id);
+
+      // Check 2: Missing inputs — count how many required input slots have a connection
+      const connectedInputIds = new Set(incomingConnections.map(c => c.toInputId));
+      const connectedCount = requiredInputs.filter((_, idx) => connectedInputIds.has(idx)).length;
+
+      if (connectedCount < requiredInputs.length) {
+        result[node.id] = `Missing ${connectedCount}/${requiredInputs.length} inputs`;
+        continue;
       }
-    }));
-    return _.fromPairs(factories.filter(it => isActiveFactory(it)).map(f => {
-      const incomingConnections = connections.filter(it => it.toId === f.id);
-      return [f.id, ''];
-    }).filter(a => a.length === 2));
+
+      // Check 3: Inputs are too low — compare effective supply rate vs required rate
+      const cyclesPerMin = 60 / recipe.productionCycle.seconds;
+      let tooLowCount = 0;
+
+      for (let inputIdx = 0; inputIdx < requiredInputs.length; inputIdx++) {
+        const requiredAmountPerMin = requiredInputs[inputIdx].amountPerCycle * cyclesPerMin;
+        const connectionsToInput = incomingConnections.filter(c => c.toInputId === inputIdx);
+
+        let totalSupply = 0;
+        for (const conn of connectionsToInput) {
+          const sourceNode = nodeById.get(conn.fromId);
+          if (!sourceNode) continue;
+
+          let sourceOutputRate = 0;
+          if (isVirtualLayout(sourceNode)) {
+            const output = (sourceNode.factory as VirtualFactory).outputs[conn.fromOutputId];
+            if (output) sourceOutputRate = output.amountPerMinute;
+          } else if (isActiveFactory(sourceNode)) {
+            const srcFactory = sourceNode.factory as ActiveFactory;
+            const srcRecipe = srcFactory.activeRecipe();
+            if (srcRecipe) {
+              const variant = srcFactory.activeProductionVariant();
+              const pv = variant ? srcRecipe.productionVariants?.find(v => v.name === variant) : null;
+              const cycleSeconds = pv ? pv.seconds : srcRecipe.productionCycle.seconds;
+              const cycleUnits = pv ? pv.nbUnits : srcRecipe.productionCycle.nbUnits;
+              sourceOutputRate = (60 / cycleSeconds) * cycleUnits;
+            }
+          }
+
+          // Split output evenly among all recipients of this source output port
+          const recipientCount = connections.filter(
+            c => c.fromId === conn.fromId && c.fromOutputId === conn.fromOutputId
+          ).length;
+          totalSupply += recipientCount > 0 ? sourceOutputRate / recipientCount : 0;
+        }
+
+        if (totalSupply < requiredAmountPerMin) {
+          tooLowCount++;
+        }
+      }
+
+      if (tooLowCount > 0) {
+        result[node.id] = `${tooLowCount}/${requiredInputs.length} inputs are too low`;
+      }
+    }
+
+    return result;
   });
 
   initialize(): Promise<void> {
@@ -135,69 +192,63 @@ export class UserSessionService {
     this.objectStoreService.saveLayout(activeLayout);
   }
 
+  /** Builds a new {@link FactoryCanvasNode} without adding it to any layout. */
+  private createFactoryNode(
+    factory: Factory,
+    activeRecipe: Resource | null,
+    x: number,
+    y: number,
+    activeVariant: string | null = null,
+  ): FactoryCanvasNode {
+    const activeFactory = createActiveFactory(factory, activeRecipe);
+    activeFactory.activeProductionVariant.set(activeVariant);
+    return {
+      id: crypto.randomUUID(),
+      factory: activeFactory,
+      x,
+      y,
+      freeDragPos: { x: 0, y: 0 },
+      activeFormula: computed(() => {
+        const r = activeFactory.activeRecipe();
+        if (r === null) return 'No recipe selected';
+        const variant = activeFactory.activeProductionVariant();
+        return variant ? `${r.id} [${variant}]` : r.id;
+      }),
+    };
+  }
+
   /** Creates a copy of an active-factory node, offset by (offsetX, offsetY). */
   public duplicateNode(source: FactoryCanvasNode, offsetX: number, offsetY: number): void {
     const activeLayout = this.activeLayout();
     if (!activeLayout || !isActiveFactory(source)) return;
 
     const srcFactory = source.factory as ActiveFactory;
-    const activeRecipe = srcFactory.activeRecipe();
-    const activeVariant = srcFactory.activeProductionVariant();
+    const newNode = this.createFactoryNode(
+      srcFactory,
+      srcFactory.activeRecipe(),
+      source.x + offsetX,
+      source.y + offsetY,
+      srcFactory.activeProductionVariant(),
+    );
 
-    activeLayout.factories.update(existingFactories => {
-      const newActiveFactory = createActiveFactory(srcFactory, activeRecipe);
-      newActiveFactory.activeProductionVariant.set(activeVariant);
-
-      const newNode: FactoryCanvasNode = {
-        id: crypto.randomUUID(),
-        factory: newActiveFactory,
-        x: source.x + offsetX,
-        y: source.y + offsetY,
-        freeDragPos: { x: 0, y: 0 },
-        activeFormula: computed(() => {
-          const r = newActiveFactory.activeRecipe();
-          if (r === null) return 'No recipe selected';
-          const variant = newActiveFactory.activeProductionVariant();
-          return variant ? `${r.id} [${variant}]` : r.id;
-        }),
-      };
-      return [...existingFactories, newNode];
-    });
-
+    activeLayout.factories.update(nodes => [...nodes, newNode]);
     this.objectStoreService.saveLayout(activeLayout);
   }
 
   public addNewFactory(factory: Factory, activeRecipe: Resource | null) {
     const activeLayout = this.activeLayout();
-    if (!activeLayout) {
-      return;
-    }
+    if (!activeLayout) return;
+
     if (activeRecipe) {
-      // is new target
       const cyclesPerMin = 60 / activeRecipe.productionCycle.seconds;
       activeLayout.targets.update(targets => _.set(targets, activeRecipe.id, {
         resource: activeRecipe,
-        target: cyclesPerMin * activeRecipe.productionCycle.nbUnits
+        target: cyclesPerMin * activeRecipe.productionCycle.nbUnits,
       }));
     }
-    activeLayout.factories.update((existingFactories) => {
-      const activeFactory = createActiveFactory(factory, activeRecipe);
-      const newFactory: FactoryCanvasNode = {
-        id: crypto.randomUUID(),
-        factory: activeFactory,
-        x: 0,
-        y: 0,
-        freeDragPos: { x: 0, y: 0 },
-        activeFormula: computed(() => {
-          const r = activeFactory.activeRecipe();
-          if (r === null) return 'No recipe selected';
-          const variant = activeFactory.activeProductionVariant();
-          return variant ? `${r.id} [${variant}]` : r.id;
-        })
-      };
-      return [...existingFactories, newFactory];
-    });
 
+    const newNode = this.createFactoryNode(factory, activeRecipe, 0, 0);
+    activeLayout.factories.update(nodes => [...nodes, newNode]);
     this.objectStoreService.saveLayout(activeLayout);
   }
 }

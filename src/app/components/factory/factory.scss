@@ -184,7 +184,7 @@
 // ── Factory node ──────────────────────────────────────────────────────────────
 .factory-node {
   position: absolute;
-  width: 180px;
+  width: 208px;
   height: 96px;
   display: flex;
   align-items: center;
@@ -280,7 +280,6 @@
     font-size: 13px;
     font-weight: 500;
     white-space: nowrap;
-    overflow: hidden;
     text-overflow: ellipsis;
     flex: 1;
     min-width: 0;
@@ -289,8 +288,8 @@
       font-style: italic;
     }
 
-    &.clickable {
-      cursor: pointer;
+    &.problem {
+      color: var(--mat-sys-error);
     }
   }
 }

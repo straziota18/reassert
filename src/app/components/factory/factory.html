@@ -82,10 +82,9 @@
         <div class="node-data">
           <span class="node-label" [title]="getNodeLabel(node)">{{ getNodeLabel(node) }}</span>
           <span class="node-label"
-            [class]="{'missing-formula': isMissingFormula(node)}"
+            [class]="{'missing-formula': isMissingFormula(node), 'problem': getNodeProblem(node)}"
             [title]="node.activeFormula()">{{ node.activeFormula() }}</span>
-          <span class="node-label" [class]="getInputStatusCss(node)" [title]="getInputStatus(node)">{{
-            getInputStatus(node) }}</span>
+          <span class="node-label" [title]="getNodeProblem(node)" [class]="{'problem': getNodeProblem(node)}">{{ getNodeProblem(node) }}</span>
 
         </div>
 

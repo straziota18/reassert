@@ -22,8 +22,6 @@ export interface ActiveFactory extends Factory {
     activeProductionVariant: WritableSignal<string | null>;
 }
 
-export type FactoryProblem = 'Idle' | 'Missing inputs' | 'Sub-optimal inputs';
-
 export interface VirtualFactory extends ReassertObject {
     /** The id of the FactoryLayout this virtual factory belongs to. */
     layoutId: string;
@@ -107,7 +105,7 @@ export const isActiveFactory: (node: FactoryCanvasNode) => boolean = (node) => {
 }
 
 export const isMissingFormula: (node: FactoryCanvasNode) => boolean = (node: FactoryCanvasNode) => {
-    return isActiveFactory(node) ? (node.factory as ActiveFactory).activeRecipe === null : false;
+    return isActiveFactory(node) ? (node.factory as ActiveFactory).activeRecipe() === null : false;
 };
 
 export interface Connection extends ReassertObject {

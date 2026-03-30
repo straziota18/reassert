@@ -10,7 +10,7 @@ import { FactoryCanvasNode, Connection, getNbInputs, getNbOutputs, getNodeLabel,
 import { UserSessionService } from '../../services/user-session-service';
 import { OptimizationService } from '../../services/optimization-service';
 
-const NODE_W = 180;
+const NODE_W = 208;
 const NODE_H = 96;
 const PORT_H = 16;
 const CANVAS_PADDING = 120;
@@ -292,17 +292,8 @@ export class Factory {
 
   trackById = (_: number, item: { id: string }) => item.id;
 
-  getInputStatusCss(node: FactoryCanvasNode): string | null {
-    // TODO, check if missing input or inefficient
-    return null;
-  }
-
-  getInputStatus(node: FactoryCanvasNode): string {
-    // TODO, similar to getInputStatusCss - logic is more complex
-    const nbInputs = this.connections().filter(
-      c => c.toId === node.id,
-    ).length;
-    return getNbInputs(node) === 0 ? 'Raw material' : `${nbInputs}/${getNbInputs(node)} inputs available`;
+  getNodeProblem(node: FactoryCanvasNode): string {
+    return this.userSessionService.factoryProblems()[node.id];
   }
 
   startFormulaChange(node: FactoryCanvasNode) {
