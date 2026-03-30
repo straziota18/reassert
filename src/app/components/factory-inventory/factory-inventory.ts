@@ -9,7 +9,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { ActiveFactory, FactoryLayout, VirtualFactory } from '../../services/model';
 import { ObjectStoreService } from '../../services/object-store-service';
-import  * as _ from 'lodash';
+import * as _ from 'lodash';
 
 export interface InventoryRow {
   type: 'active' | 'virtual';
@@ -36,12 +36,15 @@ export interface InventoryRow {
 export class FactoryInventory implements OnInit {
   private readonly objectStore = inject(ObjectStoreService);
 
+  readonly groupByType = signal(false);
   readonly expandVirtual = signal(false);
   readonly loading = signal(false);
   readonly rows = signal<InventoryRow[]>([]);
   readonly sortState = signal<Sort>({ active: '', direction: '' });
 
-  readonly displayedColumns = ['type', 'factoryId', 'resource', 'count', 'layouts'];
+  readonly displayedColumns = computed(() => {
+    return this.groupByType() ? ['type', 'factoryId', 'count', 'layouts'] : ['type', 'factoryId', 'resource', 'count', 'layouts'];
+  });
 
   readonly sortedRows = computed<InventoryRow[]>(() => {
     const rows = this.rows();
@@ -50,11 +53,11 @@ export class FactoryInventory implements OnInit {
     const dir = sort.direction === 'asc' ? 1 : -1;
     return [...rows].sort((a, b) => {
       switch (sort.active) {
-        case 'type':      return dir * a.type.localeCompare(b.type);
+        case 'type': return dir * a.type.localeCompare(b.type);
         case 'factoryId': return dir * a.factoryId.localeCompare(b.factoryId);
-        case 'resource':  return dir * a.resource.localeCompare(b.resource);
-        case 'count':     return dir * (a.count - b.count);
-        default:          return 0;
+        case 'resource': return dir * a.resource.localeCompare(b.resource);
+        case 'count': return dir * (a.count - b.count);
+        default: return 0;
       }
     });
   });
@@ -67,6 +70,11 @@ export class FactoryInventory implements OnInit {
     this.loadData();
   }
 
+  onGroupByTypeChange(checked: boolean) {
+    this.groupByType.set(checked);
+    this.loadData();
+  }
+
   onExpandVirtualChange(checked: boolean): void {
     this.expandVirtual.set(checked);
     this.loadData();
@@ -75,6 +83,7 @@ export class FactoryInventory implements OnInit {
   async loadData(): Promise<void> {
     this.loading.set(true);
     try {
+      const groupByType = this.groupByType();
       const layoutIds = this.objectStore.listLayoutIds();
       const layouts = (
         await Promise.all(layoutIds.map(id => this.objectStore.loadLayout(id).catch(() => null)))
@@ -97,8 +106,8 @@ export class FactoryInventory implements OnInit {
               }
             } else {
               const outputStr =
-                vf.outputs.length > 0
-                  ? vf.outputs.map(o => `${o.resource.id} (${o.amountPerMinute}/min)`).join(', ')
+                !groupByType && vf.outputs.length > 0
+                  ? vf.outputs.map(o => o.resource.id).join(', ')
                   : '(no outputs)';
               virtualRows.push({
                 type: 'virtual',
@@ -111,7 +120,7 @@ export class FactoryInventory implements OnInit {
             // ActiveFactory
             const af = factory as ActiveFactory;
             const recipe = af.activeRecipe();
-            const resourceId = recipe ? recipe.id : '(no recipe)';
+            const resourceId = recipe && !groupByType ? recipe.id : '(no recipe)';
             const key = `${af.id}::${resourceId}`;
             const existing = activeMap.get(key);
 
