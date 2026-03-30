@@ -42,6 +42,7 @@ interface SerializedFactoryLayout {
   /** Connection is already flat (only contains primitive IDs) */
   connections: Connection[];
   factories: SerializedFactoryCanvasNode[];
+  targets: {[resourceId: string]: number};
 }
 
 // ---------------------------------------------------------------------------
@@ -112,6 +113,7 @@ export class ObjectStoreService {
       id: layout.id,
       connections: layout.connections().map(c => ({ ...c })),
       factories: layout.factories().map(n => this.serializeNode(n)),
+      targets: _.fromPairs(_.toPairs(layout.targets()).map(([key, value]) => [key, value.target]))
     };
   }
 
@@ -164,11 +166,15 @@ export class ObjectStoreService {
         const factories = serialized.factories.map(sn =>
           this.deserializeNode(sn, universe),
         );
+        const targets = _.fromPairs(_.toPairs(serialized.targets).map(([key, value]) => {
+          return [key, {resource: universe.resources[key], target: value}];
+        }));
 
         resolve({
           id: serialized.id,
           connections: signal(serialized.connections.map(c => ({ ...c }))),
           factories: signal(factories),
+          targets: signal(targets)
         });
       }).catch(err => reject(err));
 

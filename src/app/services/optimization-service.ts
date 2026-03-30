@@ -19,6 +19,7 @@ export class OptimizationService {
   private readonly BASE = 'assets/star-rupture';
 
   private readonly universe$ = new BehaviorSubject<Universe | null>(null);
+  private readonly worker = new Worker(new URL('./optimizer.worker', import.meta.url));
 
   loadUniverse(): Promise<Universe> {
     if (!this.universe$.value) {

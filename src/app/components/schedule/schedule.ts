@@ -9,10 +9,12 @@ import { ItemSelectDialog, ItemSelectDialogData } from '../item-select-dialog/it
 import { ActiveFactory, Resource, VirtualFactory } from '../../services/model';
 import { OptimizationService } from '../../services/optimization-service';
 import { UserSessionService } from '../../services/user-session-service';
+import * as _ from 'lodash';
 
 export interface ScheduleRow {
   factoryId: string;
   resource: string;
+  targetPerMin: number;
   producedPerMin: number;
   consumedPerMin: number;
   nbFactories: number;
@@ -22,6 +24,7 @@ const createScheduleRow: (resource: Resource) => ScheduleRow = (resource: Resour
   return {
     consumedPerMin: 0.0,
     producedPerMin: 0.0,
+    targetPerMin: 0.0,
     factoryId: resource.createdIn.id,
     resource: resource.id,
     nbFactories: 0
@@ -46,13 +49,20 @@ export class Schedule {
   private readonly optimizationService = inject(OptimizationService);
   private readonly userSession = inject(UserSessionService);
 
-  readonly displayedColumns = [ 'factoryId', 'nbFactories', 'resource', 'producedPerMin', 'consumedPerMin'];
+  readonly displayedColumns = ['factoryId', 'nbFactories', 'resource', 'targetPerMin', 'producedPerMin', 'consumedPerMin'];
 
   readonly rows = computed<ScheduleRow[]>(() => {
     const layout = this.userSession.activeLayout();
     if (!layout) return [];
 
     const rows: { [resourceId: string]: ScheduleRow } = {};
+    const targets = layout.targets();
+    for (const [resourceId, target] of _.toPairs(targets)) {
+      if (!rows[resourceId]) {        
+        rows[resourceId] = createScheduleRow(targets[resourceId].resource);
+      }
+      rows[resourceId].targetPerMin = target.target;
+    }
 
     for (const node of layout.factories()) {
       const factory = node.factory;

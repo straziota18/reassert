@@ -2,6 +2,7 @@ import { computed, inject, Injectable, signal, WritableSignal } from '@angular/c
 import { ObjectStoreService } from './object-store-service';
 import { OptimizationService } from './optimization-service';
 import { Connection, createActiveFactory, Factory, FactoryCanvasNode, FactoryLayout, Resource } from './model';
+import * as _ from 'lodash';
 
 const ACTIVE_LAYOUT_KEY = 'reassert:active-layout-id';
 
@@ -41,6 +42,7 @@ export class UserSessionService {
       id: 'Global layout',
       factories: signal([]),
       connections: signal([]),
+      targets: signal({})
     };
 
     this.objectStoreService.saveLayout(newLayout);
@@ -108,6 +110,11 @@ export class UserSessionService {
     const activeLayout = this.activeLayout();
     if (!activeLayout) {
       return;
+    }
+    if (activeRecipe) {
+      // is new target
+      const cyclesPerMin = 60 / activeRecipe.productionCycle.seconds;
+      activeLayout.targets.update(targets => _.set(targets, activeRecipe.id, cyclesPerMin * activeRecipe.productionCycle.nbUnits));
     }
     activeLayout.factories.update((existingFactories) => {
       const activeFactory = createActiveFactory(factory, activeRecipe);

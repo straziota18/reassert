@@ -81,4 +81,5 @@ export interface Connection extends ReassertObject {
 export interface FactoryLayout extends ReassertObject {
     factories: WritableSignal<FactoryCanvasNode[]>;
     connections: WritableSignal<Connection[]>;
+    targets: WritableSignal<{[resourceId: string]: {target: number, resource: Resource}}>;
 }
