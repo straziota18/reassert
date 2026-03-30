@@ -6,7 +6,7 @@ import { MatIcon } from "@angular/material/icon";
 import * as _ from 'lodash';
 import { MatDialog } from '@angular/material/dialog';
 import { ItemSelectDialog, ItemSelectDialogData } from '../item-select-dialog/item-select-dialog';
-import { FactoryCanvasNode, Connection, getNbInputs, getNbOutputs, getNodeLabel, isMissingFormula, isActiveFactory, ActiveFactory } from '../../services/model';
+import { FactoryCanvasNode, Connection, getNbInputs, getNbOutputs, getNodeLabel, isMissingFormula, isActiveFactory, ActiveFactory, ProductionVariant } from '../../services/model';
 import { UserSessionService } from '../../services/user-session-service';
 import { OptimizationService } from '../../services/optimization-service';
 
@@ -270,6 +270,28 @@ export class Factory {
       c => c.toId === node.id,
     ).length;
     return getNbInputs(node) === 0 ? 'Raw material' : `${nbInputs}/${getNbInputs(node)} inputs available`;
+  }
+
+  // ── Production variant helpers ───────────────────────────────────────────
+
+  /** Returns the list of variants for the node's active recipe, or [] if none. */
+  getProductionVariants(node: FactoryCanvasNode): ProductionVariant[] {
+    if (!isActiveFactory(node)) return [];
+    const recipe = (node.factory as ActiveFactory).activeRecipe();
+    return recipe?.productionVariants ?? [];
+  }
+
+  /** Returns the currently selected variant name, or null (= default cycle). */
+  getActiveVariant(node: FactoryCanvasNode): string | null {
+    if (!isActiveFactory(node)) return null;
+    return (node.factory as ActiveFactory).activeProductionVariant();
+  }
+
+  /** Called when the user picks a variant from the selector. */
+  setProductionVariant(node: FactoryCanvasNode, event: Event): void {
+    const value = (event.target as HTMLSelectElement).value || null;
+    (node.factory as ActiveFactory).activeProductionVariant.set(value);
+    this.userSessionService.updateNode(node);
   }
 
   startFormulaChange(node: FactoryCanvasNode) {

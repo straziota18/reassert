@@ -83,6 +83,14 @@
             [title]="node.activeFormula()">{{ node.activeFormula() }}</span>
           <span class="node-label" [class]="getInputStatusCss(node)" [title]="getInputStatus(node)">{{
             getInputStatus(node) }}</span>
+          @if (getProductionVariants(node).length > 0) {
+          <select class="variant-select" (change)="setProductionVariant(node, $event)" (click)="$event.stopPropagation()">
+            <option value="" [selected]="getActiveVariant(node) === null">Normal</option>
+            @for (v of getProductionVariants(node); track v.name) {
+            <option [value]="v.name" [selected]="getActiveVariant(node) === v.name">{{ v.name }}</option>
+            }
+          </select>
+          }
         </div>
 
         <button class="node-delete-btn" title="Delete node" (click)="deleteNode(node, $event)">✕</button>

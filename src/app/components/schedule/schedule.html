@@ -53,6 +53,8 @@
           +{{ row.producedPerMin - row.consumedPerMin | number:'1.0-2' }}
         } @else if (row.producedPerMin - row.consumedPerMin < 0) {
           {{ row.producedPerMin - row.consumedPerMin | number:'1.0-2' }}
+        } @else {
+          -
         }
       </td>
     </ng-container>

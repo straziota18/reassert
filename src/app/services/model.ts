@@ -18,6 +18,8 @@ export interface Modulator extends ReassertObject {
 
 export interface ActiveFactory extends Factory {
     activeRecipe: WritableSignal<Resource | null>;
+    /** Name of the selected ProductionVariant, or null to use the default productionCycle. */
+    activeProductionVariant: WritableSignal<string | null>;
 }
 
 export type FactoryProblem = 'Idle' | 'Missing inputs' | 'Sub-optimal inputs';
@@ -34,14 +36,23 @@ export const createActiveFactory: (factory: Factory, activeRecipe: Resource | nu
         nbInputs: factory.nbInputs,
         energyConsumption: factory.energyConsumption,
         coreLoadConsumption: factory.coreLoadConsumption,
-        activeRecipe: signal(activeRecipe)
+        activeRecipe: signal(activeRecipe),
+        activeProductionVariant: signal(null),
     };
 };
+
+export interface ProductionVariant {
+    name: string;
+    seconds: number;
+    nbUnits: number;
+}
 
 export interface Resource extends ReassertObject {
     createdIn: Factory;
     requires: {input: Resource, amountPerCycle: number}[];
     productionCycle: {seconds: number, nbUnits: number};
+    /** Optional alternative yield variants (e.g. Impure / Pure ore nodes). */
+    productionVariants?: ProductionVariant[];
 }
 
 export interface Universe {

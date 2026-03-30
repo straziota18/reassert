@@ -158,7 +158,9 @@ export class UserSessionService {
         freeDragPos: { x: 0, y: 0 },
         activeFormula: computed(() => {
           const r = activeFactory.activeRecipe();
-          return r === null ? 'No recipe selected' : r.id;
+          if (r === null) return 'No recipe selected';
+          const variant = activeFactory.activeProductionVariant();
+          return variant ? `${r.id} [${variant}]` : r.id;
         })
       };
       return [...existingFactories, newFactory];

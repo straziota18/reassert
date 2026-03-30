@@ -84,13 +84,18 @@ export class Schedule {
         const recipe = af.activeRecipe();
 
         if (recipe) {
-          const cyclesPerMin = 60 / recipe.productionCycle.seconds;
+          // Resolve the active production variant (null → use default productionCycle)
+          const variantName = af.activeProductionVariant();
+          const activeCycle = variantName && recipe.productionVariants
+            ? (recipe.productionVariants.find(v => v.name === variantName) ?? recipe.productionCycle)
+            : recipe.productionCycle;
+          const cyclesPerMin = 60 / activeCycle.seconds;
 
           // One row for the produced resource
           if (!rows[recipe.id]) {
             rows[recipe.id] = createScheduleRow(recipe);
           }
-          rows[recipe.id].producedPerMin += recipe.productionCycle.nbUnits * cyclesPerMin;
+          rows[recipe.id].producedPerMin += activeCycle.nbUnits * cyclesPerMin;
           rows[recipe.id].nbFactories += 1;
 
           // One row per consumed input

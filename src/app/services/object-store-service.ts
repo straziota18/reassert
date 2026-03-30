@@ -20,6 +20,8 @@ interface SerializedActiveFactory {
   id: string;
   /** null when no recipe has been selected */
   activeRecipeId: string | null;
+  /** null means use the default productionCycle (Normal node) */
+  activeProductionVariantName: string | null;
 }
 
 interface SerializedVirtualFactory {
@@ -162,6 +164,7 @@ export class ObjectStoreService {
         type: 'active',
         id: af.id,
         activeRecipeId: recipe ? recipe.id : null,
+        activeProductionVariantName: af.activeProductionVariant(),
       } satisfies SerializedActiveFactory;
     }
   }
@@ -204,8 +207,11 @@ export class ObjectStoreService {
       activeFormulaSignal = signal('Virtual source');
     } else {
       activeFormulaSignal = computed(() => {
-        const activeRecipe = (<ActiveFactory>deserializedFactory).activeRecipe();
-        return activeRecipe === null ? 'No recipe selected' : activeRecipe.id;
+        const af = <ActiveFactory>deserializedFactory;
+        const activeRecipe = af.activeRecipe();
+        if (activeRecipe === null) return 'No recipe selected';
+        const variant = af.activeProductionVariant();
+        return variant ? `${activeRecipe.id} [${variant}]` : activeRecipe.id;
       });
     }
     return {
@@ -259,6 +265,7 @@ export class ObjectStoreService {
       return {
         ...baseFactory,
         activeRecipe: signal(recipe),
+        activeProductionVariant: signal(saf.activeProductionVariantName ?? null),
       } satisfies ActiveFactory;
     }
   }

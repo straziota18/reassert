@@ -9,6 +9,7 @@ interface RawResource {
   createdIn: string;
   requires: { input: string; amountPerCycle: number }[];
   productionCycle: { seconds: number; nbUnits: number };
+  productionVariants?: { name: string; seconds: number; nbUnits: number }[];
 }
 
 @Injectable({
@@ -42,6 +43,7 @@ export class OptimizationService {
                 createdIn: factoryMap.get(raw.createdIn)!,
                 requires: [],
                 productionCycle: raw.productionCycle,
+                ...(raw.productionVariants ? { productionVariants: raw.productionVariants } : {}),
               };
               resourceMap.set(raw.id, resource);
             }

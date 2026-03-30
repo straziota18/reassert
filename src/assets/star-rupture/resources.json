@@ -42,7 +42,11 @@
         "productionCycle": {
             "seconds": 2,
             "nbUnits": 4
-        }
+        },
+        "productionVariants": [
+            { "name": "Impure", "seconds": 2, "nbUnits": 2 },
+            { "name": "Pure",   "seconds": 2, "nbUnits": 8 }
+        ]
     },
     {
         "id": "Titanium Ore",
@@ -51,7 +55,11 @@
         "productionCycle": {
             "seconds": 2,
             "nbUnits": 4
-        }
+        },
+        "productionVariants": [
+            { "name": "Impure", "seconds": 2, "nbUnits": 2 },
+            { "name": "Pure",   "seconds": 2, "nbUnits": 8 }
+        ]
     },
     {
         "id": "Wolfram Ore",
@@ -60,7 +68,11 @@
         "productionCycle": {
             "seconds": 2,
             "nbUnits": 4
-        }
+        },
+        "productionVariants": [
+            { "name": "Impure", "seconds": 2, "nbUnits": 2 },
+            { "name": "Pure",   "seconds": 2, "nbUnits": 8 }
+        ]
     },
     {
         "id": "Accumulator",
@@ -2728,60 +2740,6 @@
         "productionCycle": {
             "seconds": 4,
             "nbUnits": 2
-        }
-    },
-    {
-        "id": "Calcium Ore (Impure)",
-        "createdIn": "Ore Excavator",
-        "requires": [],
-        "productionCycle": {
-            "seconds": 2,
-            "nbUnits": 2
-        }
-    },
-    {
-        "id": "Calcium Ore (Pure)",
-        "createdIn": "Ore Excavator",
-        "requires": [],
-        "productionCycle": {
-            "seconds": 2,
-            "nbUnits": 8
-        }
-    },
-    {
-        "id": "Titanium Ore (Impure)",
-        "createdIn": "Ore Excavator",
-        "requires": [],
-        "productionCycle": {
-            "seconds": 2,
-            "nbUnits": 2
-        }
-    },
-    {
-        "id": "Titanium Ore (Pure)",
-        "createdIn": "Ore Excavator",
-        "requires": [],
-        "productionCycle": {
-            "seconds": 2,
-            "nbUnits": 8
-        }
-    },
-    {
-        "id": "Wolfram Ore (Impure)",
-        "createdIn": "Ore Excavator",
-        "requires": [],
-        "productionCycle": {
-            "seconds": 2,
-            "nbUnits": 2
-        }
-    },
-    {
-        "id": "Wolfram Ore (Pure)",
-        "createdIn": "Ore Excavator",
-        "requires": [],
-        "productionCycle": {
-            "seconds": 2,
-            "nbUnits": 8
         }
     }
 ]
