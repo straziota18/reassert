@@ -288,22 +288,28 @@
   }
 }
 
-.node-delete-btn {
-  background: transparent;
-  border: none;
-  color: #546e7a;
-  cursor: pointer;
-  font-size: 11px;
-  padding: 3px 5px;
-  border-radius: 4px;
-  line-height: 1;
-  flex-shrink: 0;
-  transition: color 0.15s, background 0.15s;
+.buttons-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  .node-btn {
+    background: transparent;
+    border: none;
+    color: #546e7a;
+    cursor: pointer;
+    font-size: 11px;
+    padding: 3px 5px;
+    border-radius: 4px;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: color 0.15s, background 0.15s;
 
-  &:hover {
-    color: #ef5350;
-    background: rgba(239, 83, 80, 0.15);
+    &:hover {
+      color: #ef5350;
+      background: rgba(239, 83, 80, 0.15);
+    }
   }
+
 }
 
 // ── Ports ─────────────────────────────────────────────────────────────────────
