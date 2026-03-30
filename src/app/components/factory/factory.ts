@@ -352,6 +352,12 @@ export class Factory implements AfterViewInit {
     });
   }
 
+  reorganize() {
+    this.optimizationService.reorganizeNodes(this.userSessionService.activeLayout()).then(newLayout => {
+      //
+    });
+  }
+
   selectNode(node: FactoryCanvasNode, ev: MouseEvent): void {
     ev.stopPropagation();
     this.selectedNodeId.set(node.id);

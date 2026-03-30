@@ -1,8 +1,10 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, filter, firstValueFrom, forkJoin, map } from 'rxjs';
-import { Factory, Modulator, Resource, Universe } from './model';
+import { BehaviorSubject, filter, firstValueFrom, forkJoin, map, Subject } from 'rxjs';
+import { Factory, FactoryLayout, Modulator, Resource, Universe } from './model';
 import * as _ from 'lodash';
+import { deserializeLayout, SerializedFactoryLayout, serializeLayout } from './object-store-service';
+import { WorkerResponse } from './optimizer.worker.types';
 
 interface RawResource {
   id: string;
@@ -21,6 +23,15 @@ export class OptimizationService {
 
   private readonly universe$ = new BehaviorSubject<Universe | null>(null);
   private readonly worker = new Worker(new URL('./optimizer.worker', import.meta.url));
+
+  private readonly workerResponses$ = new Subject<WorkerResponse>();
+
+  constructor() {
+    this.worker.onmessage = ({ data }: MessageEvent<WorkerResponse>) => {
+      console.log(data);
+      this.workerResponses$.next(data);
+    }
+  }
 
   loadUniverse(): Promise<Universe> {
     if (!this.universe$.value) {
@@ -68,5 +79,18 @@ export class OptimizationService {
     }
 
     return firstValueFrom(this.universe$.pipe(filter((u): u is Universe => u !== null)));
+  }
+
+  reorganizeNodes(layout: FactoryLayout | null): Promise<FactoryLayout> {
+    return new Promise<FactoryLayout>((resolve, reject) => {
+      if (!layout) {
+        reject('No layout loaded');
+      }
+      this.loadUniverse().then(universe => {
+        const currentActionId = crypto.randomUUID();
+        this.worker.postMessage({ action: 'optimize-dag', actionId: currentActionId, payload: serializeLayout(layout!) });
+        this.workerResponses$.pipe(filter(it => it.actionId === currentActionId)).subscribe(it => resolve(deserializeLayout(universe, it.result as SerializedFactoryLayout)));
+      }).catch(err => reject(err));
+    });
   }
 }

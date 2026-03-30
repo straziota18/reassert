@@ -1,6 +1,7 @@
 <!-- ── Toolbar ─────────────────────────────────────────────────────────── -->
 <div class="factory-toolbar">
   <button mat-raised-button color="primary" (click)="addNode()"><mat-icon>add</mat-icon>Add</button>
+  <button mat-raised-button color="accent" (click)="reorganize()"><mat-icon>dataset_linked</mat-icon>Reorganize</button>
 
   @if (pendingFrom) {
   <span class="toolbar-hint">
