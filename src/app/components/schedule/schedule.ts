@@ -80,8 +80,8 @@ export class Schedule {
             rows[output.resource.id] = createScheduleRow(output.resource);
           }
           rows[output.resource.id].producedPerMin += output.amountPerMinute;
-        }
-      } else {
+        }      
+      } else if (!_.hasIn(factory, 'nbOutputs')) {
         // ActiveFactory – derive rates from the active recipe's production cycle
         const af = factory as ActiveFactory;
         const recipe = af.activeRecipe();

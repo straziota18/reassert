@@ -1,6 +1,6 @@
 <!-- ── Toolbar ─────────────────────────────────────────────────────────── -->
 <div class="factory-toolbar">
-  <button mat-raised-button color="primary" (click)="addNode()"><mat-icon>add</mat-icon>Add Factory</button>
+  <button mat-raised-button color="primary" (click)="addNode()"><mat-icon>add</mat-icon>Add</button>
 
   @if (pendingFrom) {
   <span class="toolbar-hint">
@@ -18,9 +18,17 @@
 </div>
 
 <!-- ── Canvas ─────────────────────────────────────────────────────────── -->
-<div class="canvas-container" cdkScrollable>
-  <div class="canvas-world" #canvasWorld [class.pending-mode]="pendingFrom" [style.width.px]="canvasWidth()"
-    [style.height.px]="canvasHeight()" (mousemove)="onMouseMove($event)" (click)="deselectAll()">
+<div class="canvas-container" #canvasContainer cdkScrollable>
+  <div class="canvas-world" #canvasWorld
+    [class.pending-mode]="pendingFrom"
+    [class.is-panning]="isPanning"
+    [style.width.px]="canvasWidth()"
+    [style.height.px]="canvasHeight()"
+    (mousedown)="onCanvasMouseDown($event)"
+    (mousemove)="onMouseMove($event)"
+    (click)="deselectAll()"
+    (touchstart)="onCanvasTouchStart($event)"
+    (touchend)="onCanvasTouchEnd()">
 
     <!-- ── SVG arrow layer (above nodes via z-index, pointer-events pass-through) -->
     <svg class="arrows-svg" [attr.width]="canvasWidth()" [attr.height]="canvasHeight()">

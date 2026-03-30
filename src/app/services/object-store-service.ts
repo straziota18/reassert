@@ -1,11 +1,14 @@
 import { computed, inject, Injectable, Signal, signal } from '@angular/core';
 import {
   ActiveFactory,
+  activeFactoryActiveRecipeSignal,
   Connection,
   FactoryCanvasNode,
   FactoryLayout,
   Modulator,
+  modulatorActiveRecipeSignal,
   VirtualFactory,
+  virtualFactoryActiveRecipeSignal,
 } from './model';
 import { OptimizationService } from './optimization-service';
 import * as _ from 'lodash';
@@ -27,8 +30,6 @@ interface SerializedActiveFactory {
 interface SerializedVirtualFactory {
   type: 'virtual';
   id: string;
-  /** Id of the FactoryLayout this virtual factory belongs to. */
-  layoutId: string;
   outputs: { resourceId: string; amountPerMinute: number }[];
 }
 
@@ -144,7 +145,6 @@ export class ObjectStoreService {
       return {
         type: 'virtual',
         id: vf.id,
-        layoutId: vf.layoutId,
         outputs: vf.outputs.map(o => ({
           resourceId: o.resource.id,
           amountPerMinute: o.amountPerMinute,
@@ -178,19 +178,18 @@ export class ObjectStoreService {
   ): Promise<FactoryLayout> {
     return new Promise<FactoryLayout>((resolve, reject) => {
       this.optimizationService.loadUniverse().then(universe => {
-        const factories = serialized.factories.map(sn =>
-          this.deserializeNode(sn, universe),
-        );
-        const targets = _.fromPairs(_.toPairs(serialized.targets).map(([key, value]) => {
-          return [key, {resource: universe.resources[key], target: value}];
-        }));
-
-        resolve({
+        const result: FactoryLayout = {
           id: serialized.id,
           connections: signal(serialized.connections.map(c => ({ ...c }))),
-          factories: signal(factories),
-          targets: signal(targets)
-        });
+          factories: signal([]),
+          targets: signal({})
+        };
+        result.factories.set(serialized.factories.map(sn => this.deserializeNode(result, sn, universe)));
+        result.targets.set(_.fromPairs(_.toPairs(serialized.targets).map(([key, value]) => {
+          return [key, {resource: universe.resources[key], target: value}];
+        })));
+
+        resolve(result);
       }).catch(err => reject(err));
 
 
@@ -198,21 +197,20 @@ export class ObjectStoreService {
   }
 
   private deserializeNode(
+    currentLayout: FactoryLayout,
     sn: SerializedFactoryCanvasNode,
     universe: Awaited<ReturnType<OptimizationService['loadUniverse']>>,
   ): FactoryCanvasNode {
     const deserializedFactory = this.deserializeFactory(sn.factory, universe);
-    let activeFormulaSignal: Signal<string>;
+    let activeFormulaSignal: Signal<string[]>;
     if (_.hasIn(deserializedFactory, 'outputs')) {
-      activeFormulaSignal = signal('Virtual source');
+      const vf = deserializedFactory as VirtualFactory;
+      activeFormulaSignal = virtualFactoryActiveRecipeSignal(vf);
+    } else if (_.hasIn(deserializedFactory, 'nbOutputs')) {
+      activeFormulaSignal = modulatorActiveRecipeSignal(currentLayout, sn.id);
     } else {
-      activeFormulaSignal = computed(() => {
-        const af = <ActiveFactory>deserializedFactory;
-        const activeRecipe = af.activeRecipe();
-        if (activeRecipe === null) return 'No recipe selected';
-        const variant = af.activeProductionVariant();
-        return variant ? `${activeRecipe.id} [${variant}]` : activeRecipe.id;
-      });
+      const af = deserializedFactory as ActiveFactory;
+      activeFormulaSignal = activeFactoryActiveRecipeSignal(af);
     }
     return {
       id: sn.id,
@@ -232,7 +230,6 @@ export class ObjectStoreService {
       const vf = sf as SerializedVirtualFactory;
       return {
         id: vf.id,
-        layoutId: vf.layoutId,
         outputs: vf.outputs.map(o => {
           const resource = universe.resources[o.resourceId];
           if (!resource) {

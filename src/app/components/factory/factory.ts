@@ -1,4 +1,4 @@
-import { Component, computed, ElementRef, HostListener, inject, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, computed, ElementRef, HostListener, inject, signal, ViewChild } from '@angular/core';
 import { CdkDrag, CdkDragEnd, CdkDragHandle, CdkDragMove } from '@angular/cdk/drag-drop';
 import { CdkScrollable } from '@angular/cdk/scrolling';
 import { MatAnchor, MatButton } from "@angular/material/button";
@@ -9,6 +9,7 @@ import { ItemSelectDialog, ItemSelectDialogData, ItemSelectDialogResult } from '
 import { FactoryCanvasNode, Connection, getNbInputs, getNbOutputs, getNodeLabel, isMissingFormula, isActiveFactory, ActiveFactory } from '../../services/model';
 import { UserSessionService } from '../../services/user-session-service';
 import { OptimizationService } from '../../services/optimization-service';
+import { ObjectStoreService } from '../../services/object-store-service';
 
 const NODE_W = 208;
 const NODE_H = 96;
@@ -21,11 +22,13 @@ const CANVAS_PADDING = 120;
   templateUrl: './factory.html',
   styleUrl: './factory.scss',
 })
-export class Factory {
+export class Factory implements AfterViewInit {
   @ViewChild('canvasWorld') canvasWorldRef!: ElementRef<HTMLDivElement>;
+  @ViewChild('canvasContainer') canvasContainerRef!: ElementRef<HTMLDivElement>;
 
   private readonly userSessionService: UserSessionService = inject(UserSessionService);
   private readonly optimizationService: OptimizationService = inject(OptimizationService);
+  private readonly objectStoreService: ObjectStoreService = inject(ObjectStoreService);
 
   readonly NW = NODE_W;
   readonly NH = NODE_H;
@@ -237,16 +240,83 @@ export class Factory {
     return this.connections().some(c => c.fromId === nodeId && c.fromOutputId === outputId);
   }
 
+  // ── Pan (scroll canvas by dragging its background) ──────────────────────────
+
+  /** True while the user is panning the canvas background. */
+  isPanning = false;
+  /** Set to true once the pointer actually moves during a pan (prevents
+   *  deselectAll from firing on a simple click-without-drag). */
+  private hasPanned = false;
+  private panStartMouse = { x: 0, y: 0 };
+  private panStartScroll = { x: 0, y: 0 };
+
+  ngAfterViewInit(): void {
+    // touchmove must be registered as non-passive so we can call preventDefault()
+    // and prevent the browser from scrolling the page while panning the canvas.
+    this.canvasWorldRef.nativeElement.addEventListener(
+      'touchmove',
+      (ev: TouchEvent) => this.onCanvasTouchMove(ev),
+      { passive: false },
+    );
+  }
+
+  onCanvasMouseDown(ev: MouseEvent): void {
+    // Only pan when clicking directly on the canvas background (not a node / SVG interactive element)
+    if (ev.target !== this.canvasWorldRef.nativeElement) return;
+    if (this.pendingFrom) return;
+    this.isPanning = true;
+    this.hasPanned = false;
+    this.panStartMouse = { x: ev.clientX, y: ev.clientY };
+    const el = this.canvasContainerRef.nativeElement;
+    this.panStartScroll = { x: el.scrollLeft, y: el.scrollTop };
+    ev.preventDefault(); // prevent accidental text selection while dragging
+  }
+
+  @HostListener('document:mouseup')
+  onMouseUp(): void {
+    this.isPanning = false;
+  }
+
+  onCanvasTouchStart(ev: TouchEvent): void {
+    if (ev.touches.length !== 1 || this.pendingFrom) return;
+    const touch = ev.touches[0];
+    this.isPanning = true;
+    this.hasPanned = false;
+    this.panStartMouse = { x: touch.clientX, y: touch.clientY };
+    const el = this.canvasContainerRef.nativeElement;
+    this.panStartScroll = { x: el.scrollLeft, y: el.scrollTop };
+  }
+
+  private onCanvasTouchMove(ev: TouchEvent): void {
+    if (!this.isPanning || ev.touches.length !== 1) return;
+    ev.preventDefault(); // prevent native page scroll / zoom
+    const touch = ev.touches[0];
+    const el = this.canvasContainerRef.nativeElement;
+    el.scrollLeft = this.panStartScroll.x - (touch.clientX - this.panStartMouse.x);
+    el.scrollTop = this.panStartScroll.y - (touch.clientY - this.panStartMouse.y);
+    this.hasPanned = true;
+  }
+
+  onCanvasTouchEnd(): void {
+    this.isPanning = false;
+  }
+
   // ── Mouse tracking ──────────────────────────────────────────────────────────
 
   onMouseMove(ev: MouseEvent): void {
+    if (this.isPanning) {
+      const el = this.canvasContainerRef.nativeElement;
+      el.scrollLeft = this.panStartScroll.x - (ev.clientX - this.panStartMouse.x);
+      el.scrollTop = this.panStartScroll.y - (ev.clientY - this.panStartMouse.y);
+      this.hasPanned = true;
+      return;
+    }
     if (!this.pendingFrom) return;
     const rect = this.canvasWorldRef.nativeElement.getBoundingClientRect();
     this.pendingMouse = { x: ev.clientX - rect.left, y: ev.clientY - rect.top };
   }
 
   // ── Node CRUD ───────────────────────────────────────────────────────────────
-
   addNode(): void {
     this.optimizationService.loadUniverse().then(universe => {
       const ref = this.matDialog.open<ItemSelectDialog, ItemSelectDialogData, ItemSelectDialogResult>(
@@ -254,7 +324,11 @@ export class Factory {
         {
           data: {
             title: 'Select a factory',
-            items: Object.keys(universe.factories),
+            items: _.concat(
+              Object.keys(universe.factories),
+              Object.keys(universe.modulators),
+              this.objectStoreService.listLayoutIds().filter(it => it !== this.userSessionService.activeLayout()!.id),
+            ),
           },
           width: '420px',
           height: '65vh',
@@ -265,8 +339,15 @@ export class Factory {
 
       ref.afterClosed().subscribe(result => {
         if (!result) return;
-        const factory = universe.factories[result.label];
-        this.userSessionService.addNewFactory(factory, null);
+        if (_.hasIn(universe.factories, result.label)) {
+          const factory = universe.factories[result.label];
+          this.userSessionService.addNewFactory(factory, null);
+        } else if (_.hasIn(universe.modulators, result.label)) {
+          const modulator = universe.modulators[result.label];
+          this.userSessionService.addModulator(modulator)
+        } else {
+
+        }
       });
     });
   }
@@ -277,6 +358,11 @@ export class Factory {
   }
 
   deselectAll(): void {
+    // A pan gesture ends with a click event — ignore it so we don't clear selection.
+    if (this.hasPanned) {
+      this.hasPanned = false;
+      return;
+    }
     this.selectedNodeId.set(null);
     this.pendingFrom = null;
   }

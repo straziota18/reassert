@@ -16,16 +16,24 @@ export interface Modulator extends ReassertObject {
     nbOutputs: number;
 }
 
+export interface VirtualFactory extends ReassertObject {
+    outputs: { resource: Resource, amountPerMinute: number }[];
+}
+
+export const virtualFactoryActiveRecipeSignal: (vf: VirtualFactory) => Signal<string[]> = (vf) => {
+    return signal(vf.outputs.map(o => o.resource.id));
+};
+
 export interface ActiveFactory extends Factory {
     activeRecipe: WritableSignal<Resource | null>;
     /** Name of the selected ProductionVariant, or null to use the default productionCycle. */
     activeProductionVariant: WritableSignal<string | null>;
 }
 
-export interface VirtualFactory extends ReassertObject {
-    /** The id of the FactoryLayout this virtual factory belongs to. */
-    layoutId: string;
-    outputs: {resource: Resource, amountPerMinute: number}[];
+export interface ProductionVariant {
+    name: string;
+    seconds: number;
+    nbUnits: number;
 }
 
 export const createActiveFactory: (factory: Factory, activeRecipe: Resource | null) => ActiveFactory = (factory, activeRecipe) => {
@@ -39,33 +47,36 @@ export const createActiveFactory: (factory: Factory, activeRecipe: Resource | nu
     };
 };
 
-export interface ProductionVariant {
-    name: string;
-    seconds: number;
-    nbUnits: number;
-}
+export const activeFactoryActiveRecipeSignal: (af: ActiveFactory) => Signal<string[]> = (af) => {
+    return computed(() => {
+        const activeRecipe = af.activeRecipe();
+        if (activeRecipe === null) return [];
+        const variant = af.activeProductionVariant();
+        return [variant ? `${activeRecipe.id} [${variant}]` : activeRecipe.id];
+    });
+};
 
 export interface Resource extends ReassertObject {
     createdIn: Factory;
-    requires: {input: Resource, amountPerCycle: number}[];
-    productionCycle: {seconds: number, nbUnits: number};
+    requires: { input: Resource, amountPerCycle: number }[];
+    productionCycle: { seconds: number, nbUnits: number };
     /** Optional alternative yield variants (e.g. Impure / Pure ore nodes). */
     productionVariants?: ProductionVariant[];
 }
 
 export interface Universe {
-    resources: {[id: string]: Resource};
-    factories: {[id: string]: Factory};
-    modulators: {[id: string]: Modulator};
+    resources: { [id: string]: Resource };
+    factories: { [id: string]: Factory };
+    modulators: { [id: string]: Modulator };
 }
 
 export interface FactoryCanvasNode extends ReassertObject {
-  factory: ActiveFactory | VirtualFactory | Modulator;
-  x: number;
-  y: number;
-  /** Always {0,0} at rest; accumulates CDK transform during a drag, then absorbed into x/y on drop. */
-  freeDragPos: { x: number; y: number };
-  activeFormula: Signal<string>
+    factory: ActiveFactory | VirtualFactory | Modulator;
+    x: number;
+    y: number;
+    /** Always {0,0} at rest; accumulates CDK transform during a drag, then absorbed into x/y on drop. */
+    freeDragPos: { x: number; y: number };
+    activeFormula: Signal<string[]>
 }
 
 export const getNbInputs: (node: FactoryCanvasNode) => number = (node) => {
@@ -109,14 +120,23 @@ export const isMissingFormula: (node: FactoryCanvasNode) => boolean = (node: Fac
 };
 
 export interface Connection extends ReassertObject {
-  fromId: string;
-  fromOutputId: number;
-  toId: string;
-  toInputId: number;
+    fromId: string;
+    fromOutputId: number;
+    toId: string;
+    toInputId: number;
 }
 
 export interface FactoryLayout extends ReassertObject {
     factories: WritableSignal<FactoryCanvasNode[]>;
     connections: WritableSignal<Connection[]>;
-    targets: WritableSignal<{[resourceId: string]: {target: number, resource: Resource}}>;
+    targets: WritableSignal<{ [resourceId: string]: { target: number, resource: Resource } }>;
 }
+
+export const modulatorActiveRecipeSignal: (layout: FactoryLayout, factoryCanvasId: string) => Signal<string[]> = (layout, factoryCanvasId) => {
+    return computed(() => {
+        return _.concat(layout.connections()
+            .filter(c => c.toId === factoryCanvasId)
+            .flatMap(c => layout.factories().find(f => f.id === c.fromId)!.activeFormula())
+        );
+    });
+};

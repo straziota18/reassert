@@ -80,7 +80,14 @@
   background-image:
     radial-gradient(circle, var(--mat-sys-secondary) 1px, transparent 1px);
   background-size: 32px 32px;
-  cursor: default;
+  cursor: grab;
+
+  &.is-panning {
+    cursor: grabbing;
+    // Prevent nodes from stealing pointer events while panning so the
+    // mousemove handler on the canvas-world keeps receiving events.
+    .factory-node { pointer-events: none; }
+  }
 
   &.pending-mode {
     cursor: crosshair;

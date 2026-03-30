@@ -1,7 +1,7 @@
 import { computed, inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { ObjectStoreService } from './object-store-service';
 import { OptimizationService } from './optimization-service';
-import { ActiveFactory, Connection, createActiveFactory, Factory, FactoryCanvasNode, FactoryLayout, isActiveFactory, isVirtualLayout, Resource, VirtualFactory } from './model';
+import { ActiveFactory, activeFactoryActiveRecipeSignal, Connection, createActiveFactory, Factory, FactoryCanvasNode, FactoryLayout, isActiveFactory, isVirtualLayout, Modulator, modulatorActiveRecipeSignal, Resource, VirtualFactory, virtualFactoryActiveRecipeSignal } from './model';
 import * as _ from 'lodash';
 
 const ACTIVE_LAYOUT_KEY = 'reassert:active-layout-id';
@@ -15,7 +15,7 @@ export class UserSessionService {
 
   readonly activeLayout: WritableSignal<FactoryLayout | null> = signal(null);
 
-  readonly factoryProblems: Signal<{[factoryId: string]: string}> = computed(() => {
+  readonly factoryProblems: Signal<{ [factoryId: string]: string }> = computed(() => {
     const activeLayout = this.activeLayout();
     if (activeLayout === null) {
       return {};
@@ -24,7 +24,7 @@ export class UserSessionService {
     const factories = activeLayout.factories();
 
     const nodeById = new Map(factories.map(f => [f.id, f]));
-    const result: {[factoryId: string]: string} = {};
+    const result: { [factoryId: string]: string } = {};
 
     for (const node of factories) {
       if (!isActiveFactory(node)) continue;
@@ -193,44 +193,92 @@ export class UserSessionService {
   }
 
   /** Builds a new {@link FactoryCanvasNode} without adding it to any layout. */
-  private createFactoryNode(
-    factory: Factory,
-    activeRecipe: Resource | null,
+  private createNode(
+    layout: FactoryLayout,
+    factoryProvider: () => ActiveFactory | VirtualFactory | Modulator,
+    activeFormulaSignalProvider: (layout: FactoryLayout, it: ActiveFactory | VirtualFactory | Modulator, id: string) => Signal<string[]>,
     x: number,
     y: number,
-    activeVariant: string | null = null,
   ): FactoryCanvasNode {
-    const activeFactory = createActiveFactory(factory, activeRecipe);
-    activeFactory.activeProductionVariant.set(activeVariant);
+    const factory = factoryProvider();
+    const newId = crypto.randomUUID();
     return {
-      id: crypto.randomUUID(),
-      factory: activeFactory,
+      id: newId,
+      factory: factory,
       x,
       y,
       freeDragPos: { x: 0, y: 0 },
-      activeFormula: computed(() => {
-        const r = activeFactory.activeRecipe();
-        if (r === null) return 'No recipe selected';
-        const variant = activeFactory.activeProductionVariant();
-        return variant ? `${r.id} [${variant}]` : r.id;
-      }),
+      activeFormula: activeFormulaSignalProvider(layout, factory, newId)
     };
   }
 
   /** Creates a copy of an active-factory node, offset by (offsetX, offsetY). */
   public duplicateNode(source: FactoryCanvasNode, offsetX: number, offsetY: number): void {
     const activeLayout = this.activeLayout();
-    if (!activeLayout || !isActiveFactory(source)) return;
+    if (!activeLayout) return;
 
-    const srcFactory = source.factory as ActiveFactory;
-    const newNode = this.createFactoryNode(
-      srcFactory,
-      srcFactory.activeRecipe(),
-      source.x + offsetX,
-      source.y + offsetY,
-      srcFactory.activeProductionVariant(),
+    let newNode: FactoryCanvasNode;
+    if (isActiveFactory(source)) {
+      const srcFactory = source.factory as ActiveFactory;
+
+      newNode = this.createNode(
+        activeLayout,
+        () => {
+          const activeRecipe = srcFactory.activeRecipe();
+          const activeFactory = createActiveFactory(srcFactory, activeRecipe);
+          const activeVariant = srcFactory.activeProductionVariant();
+          activeFactory.activeProductionVariant.set(activeVariant);
+          return activeFactory;
+        },
+        (layout, f, id) => activeFactoryActiveRecipeSignal(f as ActiveFactory),
+        source.x + offsetX,
+        source.y + offsetY,
+      );
+    } else if (isVirtualLayout(source)) {
+      newNode = this.createNode(
+        activeLayout,
+        () => {
+          return {
+            id: source.id,
+            outputs: (source.factory as VirtualFactory).outputs
+          } satisfies VirtualFactory;
+        },
+        (layout, f, id) => virtualFactoryActiveRecipeSignal(f as VirtualFactory),
+        source.x + offsetX,
+        source.y + offsetY,
+      );
+    } else {
+      newNode = this.createNode(
+        activeLayout,
+        () => {
+          return {
+            id: source.factory.id,
+            nbInputs: (source.factory as Modulator).nbInputs,
+            nbOutputs: (source.factory as Modulator).nbOutputs,
+          } satisfies Modulator;
+        },
+        (layout, f, id) => modulatorActiveRecipeSignal(layout, id),
+        source.x + offsetX,
+        source.y + offsetY,
+      );
+    }
+
+
+    activeLayout.factories.update(nodes => [...nodes, newNode]);
+    this.objectStoreService.saveLayout(activeLayout);
+  }
+
+  public addModulator(modulator: Modulator) {
+    const activeLayout = this.activeLayout();
+    if (!activeLayout) return;
+
+    const newNode = this.createNode(
+      activeLayout,
+      () => modulator,
+      (layout, f, id) => modulatorActiveRecipeSignal(layout, id),
+      0,
+      0
     );
-
     activeLayout.factories.update(nodes => [...nodes, newNode]);
     this.objectStoreService.saveLayout(activeLayout);
   }
@@ -247,7 +295,17 @@ export class UserSessionService {
       }));
     }
 
-    const newNode = this.createFactoryNode(factory, activeRecipe, 0, 0);
+    const newNode = this.createNode(
+      activeLayout,
+      () => {
+          const activeFactory = createActiveFactory(factory, activeRecipe);
+          activeFactory.activeProductionVariant.set(null);
+          return activeFactory;
+      },
+      (layout, f, id) => activeFactoryActiveRecipeSignal(f as ActiveFactory),
+      0,
+      0
+    );
     activeLayout.factories.update(nodes => [...nodes, newNode]);
     this.objectStoreService.saveLayout(activeLayout);
   }

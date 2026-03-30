@@ -8,13 +8,13 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { ActiveFactory, FactoryLayout, VirtualFactory } from '../../services/model';
 import { ObjectStoreService } from '../../services/object-store-service';
+import  * as _ from 'lodash';
 
 export interface InventoryRow {
   type: 'active' | 'virtual';
   factoryId: string;
   resource: string;
   count: number;
-  layouts: string;
 }
 
 @Component({
@@ -68,7 +68,7 @@ export class FactoryInventory implements OnInit {
             // VirtualFactory
             const vf = factory as VirtualFactory;
             if (this.expandVirtual()) {
-              const vLayout = await this.objectStore.loadLayout(vf.layoutId).catch(() => null);
+              const vLayout = await this.objectStore.loadLayout(vf.id).catch(() => null);
               if (vLayout) {
                 await processLayout(vLayout);
               }
@@ -82,10 +82,9 @@ export class FactoryInventory implements OnInit {
                 factoryId: vf.id,
                 resource: outputStr,
                 count: 1,
-                layouts: vf.layoutId,
               });
             }
-          } else {
+          } else if (!_.hasIn(factory, 'nbOutputs')) {
             // ActiveFactory
             const af = factory as ActiveFactory;
             const recipe = af.activeRecipe();
@@ -95,17 +94,12 @@ export class FactoryInventory implements OnInit {
 
             if (existing) {
               existing.count++;
-              const current = existing.layouts.split(', ');
-              if (!current.includes(layout.id)) {
-                existing.layouts = [...current, layout.id].join(', ');
-              }
             } else {
               activeMap.set(key, {
                 type: 'active',
                 factoryId: af.id,
                 resource: resourceId,
                 count: 1,
-                layouts: layout.id,
               });
             }
           }
