@@ -13,11 +13,12 @@
     <mat-spinner />
   </div>
   } @else {
-  <table mat-table [dataSource]="rows()" class="inventory-table mat-elevation-z2">
+  <table mat-table matSort [dataSource]="sortedRows()" class="inventory-table mat-elevation-z2"
+    (matSortChange)="onSortChange($event)">
 
     <!-- Type Column -->
     <ng-container matColumnDef="type">
-      <th mat-header-cell *matHeaderCellDef>Type</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Type</th>
       <td mat-cell *matCellDef="let row">
         <div class="type-cell">
           <mat-icon [class]="row.type + '-icon'">
@@ -30,19 +31,19 @@
 
     <!-- Factory Column -->
     <ng-container matColumnDef="factoryId">
-      <th mat-header-cell *matHeaderCellDef>Factory</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Factory</th>
       <td mat-cell *matCellDef="let row">{{ row.factoryId }}</td>
     </ng-container>
 
     <!-- Output Column -->
     <ng-container matColumnDef="resource">
-      <th mat-header-cell *matHeaderCellDef>Output</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Output</th>
       <td mat-cell *matCellDef="let row">{{ row.resource }}</td>
     </ng-container>
 
     <!-- Count Column -->
     <ng-container matColumnDef="count">
-      <th mat-header-cell *matHeaderCellDef>Count</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Count</th>
       <td mat-cell *matCellDef="let row" class="count-cell">{{ row.count }}</td>
     </ng-container>
 

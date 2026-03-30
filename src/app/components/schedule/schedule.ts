@@ -1,7 +1,8 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
+import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -41,6 +42,7 @@ const createScheduleRow: (resource: Resource) => ScheduleRow = (resource: Resour
     CommonModule,
     MatDialogModule,
     MatTableModule,
+    MatSortModule,
     MatToolbarModule,
     MatButtonModule,
     MatIconModule,
@@ -55,6 +57,30 @@ export class Schedule {
   private readonly userSession = inject(UserSessionService);
 
   readonly displayedColumns = ['factoryId', 'nbFactories', 'resource', 'targetPerMin', 'netPerMin'];
+
+  readonly sortState = signal<Sort>({ active: '', direction: '' });
+
+  readonly sortedRows = computed<ScheduleRow[]>(() => {
+    const rows = this.rows();
+    const sort = this.sortState();
+    if (!sort.active || sort.direction === '') return rows;
+    const dir = sort.direction === 'asc' ? 1 : -1;
+    return [...rows].sort((a, b) => {
+      switch (sort.active) {
+        case 'factoryId': return dir * a.factoryId.localeCompare(b.factoryId);
+        case 'resource':  return dir * a.resource.localeCompare(b.resource);
+        case 'nbFactories': return dir * (a.nbFactories - b.nbFactories);
+        case 'targetPerMin': return dir * (a.targetPerMin - b.targetPerMin);
+        case 'netPerMin':
+          return dir * ((a.producedPerMin - a.consumedPerMin) - (b.producedPerMin - b.consumedPerMin));
+        default: return 0;
+      }
+    });
+  });
+
+  onSortChange(sort: Sort): void {
+    this.sortState.set(sort);
+  }
 
   readonly rows = computed<ScheduleRow[]>(() => {
     const layout = this.userSession.activeLayout();

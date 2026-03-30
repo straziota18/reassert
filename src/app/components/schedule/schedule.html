@@ -9,17 +9,18 @@
 </mat-toolbar>
 
 <div class="content">
-  <table mat-table [dataSource]="rows()" class="schedule-table mat-elevation-z2">
+  <table mat-table matSort [dataSource]="sortedRows()" class="schedule-table mat-elevation-z2"
+    (matSortChange)="onSortChange($event)">
 
     <!-- Factory Column -->
     <ng-container matColumnDef="factoryId">
-      <th mat-header-cell *matHeaderCellDef>Factory</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Factory</th>
       <td mat-cell *matCellDef="let row">{{ row.factoryId }}</td>
     </ng-container>
 
     <!-- Nb Factories Column -->
     <ng-container matColumnDef="nbFactories">
-      <th mat-header-cell *matHeaderCellDef>Nb Factories</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Nb Factories</th>
       <td mat-cell *matCellDef="let row">
         <div class="nb-factories-cell">
           <div class="nb-factories-value">{{ row.nbFactories }}</div>
@@ -42,13 +43,13 @@
 
     <!-- Resource Column -->
     <ng-container matColumnDef="resource">
-      <th mat-header-cell *matHeaderCellDef>Resource</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Resource</th>
       <td mat-cell *matCellDef="let row">{{ row.resource }}</td>
     </ng-container>
 
     <!-- Target/min Column -->
     <ng-container matColumnDef="targetPerMin">
-      <th mat-header-cell *matHeaderCellDef>Target/min</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Target/min</th>
       <td mat-cell *matCellDef="let row" class="rate-cell produced-cell">
         @if (row.targetPerMin > 0) {
         {{ row.targetPerMin | number:'1.0-2' }}
@@ -58,7 +59,7 @@
 
     <!-- Net/min Column -->
     <ng-container matColumnDef="netPerMin">
-      <th mat-header-cell *matHeaderCellDef>Net/min</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Net/min</th>
       <td mat-cell *matCellDef="let row" class="rate-cell"
         [class.produced-cell]="row.producedPerMin - row.consumedPerMin > 0"
         [class.consumed-cell]="row.producedPerMin - row.consumedPerMin < 0"

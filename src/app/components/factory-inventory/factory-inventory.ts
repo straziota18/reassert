@@ -1,7 +1,8 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
+import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -23,6 +24,7 @@ export interface InventoryRow {
     CommonModule,
     FormsModule,
     MatTableModule,
+    MatSortModule,
     MatToolbarModule,
     MatCheckboxModule,
     MatProgressSpinnerModule,
@@ -37,8 +39,29 @@ export class FactoryInventory implements OnInit {
   readonly expandVirtual = signal(false);
   readonly loading = signal(false);
   readonly rows = signal<InventoryRow[]>([]);
+  readonly sortState = signal<Sort>({ active: '', direction: '' });
 
   readonly displayedColumns = ['type', 'factoryId', 'resource', 'count', 'layouts'];
+
+  readonly sortedRows = computed<InventoryRow[]>(() => {
+    const rows = this.rows();
+    const sort = this.sortState();
+    if (!sort.active || sort.direction === '') return rows;
+    const dir = sort.direction === 'asc' ? 1 : -1;
+    return [...rows].sort((a, b) => {
+      switch (sort.active) {
+        case 'type':      return dir * a.type.localeCompare(b.type);
+        case 'factoryId': return dir * a.factoryId.localeCompare(b.factoryId);
+        case 'resource':  return dir * a.resource.localeCompare(b.resource);
+        case 'count':     return dir * (a.count - b.count);
+        default:          return 0;
+      }
+    });
+  });
+
+  onSortChange(sort: Sort): void {
+    this.sortState.set(sort);
+  }
 
   ngOnInit(): void {
     this.loadData();

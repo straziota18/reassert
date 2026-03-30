@@ -3,7 +3,7 @@ import { WorkerRequest, WorkerResponse } from './optimizer.worker.types';
 import { SerializedFactoryLayout } from './object-store-service';
 
 /** Must match the values in factory.ts */
-const NODE_W = 208;
+const NODE_W = 208;  // TODO use global variables
 const NODE_H = 96;
 /** Horizontal gap between successive columns. */
 const H_GAP = 80;
