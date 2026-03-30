@@ -1,4 +1,4 @@
-import { Component, computed, ElementRef, HostListener, inject, ViewChild } from '@angular/core';
+import { Component, computed, ElementRef, HostListener, inject, signal, ViewChild } from '@angular/core';
 import { CdkDrag, CdkDragEnd, CdkDragHandle, CdkDragMove } from '@angular/cdk/drag-drop';
 import { CdkScrollable } from '@angular/cdk/scrolling';
 import { MatAnchor, MatButton } from "@angular/material/button";
@@ -84,6 +84,13 @@ export class Factory {
   /** Current mouse position on the canvas-world, used to draw the in-progress arrow. */
   pendingMouse = { x: 0, y: 0 };
 
+  // ── Selection & clipboard ────────────────────────────────────────────────────
+
+  /** The currently selected node's id, or null when nothing is selected. */
+  readonly selectedNodeId = signal<string | null>(null);
+  /** The last node that was copied with Ctrl+C. */
+  private copiedNode: FactoryCanvasNode | null = null;
+
   inputIds(node: FactoryCanvasNode): number[] {
     return _.range(0, getNbInputs(node));
   }
@@ -97,6 +104,20 @@ export class Factory {
   @HostListener('document:keydown.escape')
   onEscape() {
     this.pendingFrom = null;
+    this.selectedNodeId.set(null);
+  }
+
+  @HostListener('document:keydown.control.c')
+  onCopy(): void {
+    const id = this.selectedNodeId();
+    if (!id) return;
+    this.copiedNode = this.nodes().find(n => n.id === id) ?? null;
+  }
+
+  @HostListener('document:keydown.control.v')
+  onPaste(): void {
+    if (!this.copiedNode) return;
+    this.userSessionService.duplicateNode(this.copiedNode, 24, 24);
   }
 
   // ── Drag ────────────────────────────────────────────────────────────────────
@@ -250,11 +271,23 @@ export class Factory {
     });
   }
 
+  selectNode(node: FactoryCanvasNode, ev: MouseEvent): void {
+    ev.stopPropagation();
+    this.selectedNodeId.set(node.id);
+  }
+
+  deselectAll(): void {
+    this.selectedNodeId.set(null);
+    this.pendingFrom = null;
+  }
+
   deleteNode(node: FactoryCanvasNode, ev: MouseEvent): void {
     ev.stopPropagation();
     this.userSessionService.removeNode(node);
 
     if (this.pendingFrom?.node.id === node.id) this.pendingFrom = null;
+    if (this.selectedNodeId() === node.id) this.selectedNodeId.set(null);
+    if (this.copiedNode?.id === node.id) this.copiedNode = null;
   }
 
   trackById = (_: number, item: { id: string }) => item.id;

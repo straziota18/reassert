@@ -1,7 +1,7 @@
 import { computed, inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { ObjectStoreService } from './object-store-service';
 import { OptimizationService } from './optimization-service';
-import { Connection, createActiveFactory, Factory, FactoryCanvasNode, FactoryLayout, FactoryProblem, isActiveFactory, Resource, VirtualFactory } from './model';
+import { ActiveFactory, Connection, createActiveFactory, Factory, FactoryCanvasNode, FactoryLayout, FactoryProblem, isActiveFactory, Resource, VirtualFactory } from './model';
 import * as _ from 'lodash';
 
 const ACTIVE_LAYOUT_KEY = 'reassert:active-layout-id';
@@ -132,6 +132,38 @@ export class UserSessionService {
       return;
     }
     activeLayout.connections.update(connections => connections.filter(c => c.id !== connectionId));
+    this.objectStoreService.saveLayout(activeLayout);
+  }
+
+  /** Creates a copy of an active-factory node, offset by (offsetX, offsetY). */
+  public duplicateNode(source: FactoryCanvasNode, offsetX: number, offsetY: number): void {
+    const activeLayout = this.activeLayout();
+    if (!activeLayout || !isActiveFactory(source)) return;
+
+    const srcFactory = source.factory as ActiveFactory;
+    const activeRecipe = srcFactory.activeRecipe();
+    const activeVariant = srcFactory.activeProductionVariant();
+
+    activeLayout.factories.update(existingFactories => {
+      const newActiveFactory = createActiveFactory(srcFactory, activeRecipe);
+      newActiveFactory.activeProductionVariant.set(activeVariant);
+
+      const newNode: FactoryCanvasNode = {
+        id: crypto.randomUUID(),
+        factory: newActiveFactory,
+        x: source.x + offsetX,
+        y: source.y + offsetY,
+        freeDragPos: { x: 0, y: 0 },
+        activeFormula: computed(() => {
+          const r = newActiveFactory.activeRecipe();
+          if (r === null) return 'No recipe selected';
+          const variant = newActiveFactory.activeProductionVariant();
+          return variant ? `${r.id} [${variant}]` : r.id;
+        }),
+      };
+      return [...existingFactories, newNode];
+    });
+
     this.objectStoreService.saveLayout(activeLayout);
   }
 

@@ -211,6 +211,13 @@
     z-index: 20;
   }
 
+  // Selected node (click to select, Ctrl+C to copy)
+  &.node-selected {
+    border-color: var(--mat-sys-tertiary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--mat-sys-tertiary) 35%, transparent),
+                0 6px 22px rgba(0, 0, 0, 0.6);
+  }
+
   // The node that is the connection source
   &.node-is-source {
     border-color: #fb8c00;

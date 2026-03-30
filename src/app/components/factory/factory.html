@@ -20,7 +20,7 @@
 <!-- ── Canvas ─────────────────────────────────────────────────────────── -->
 <div class="canvas-container" cdkScrollable>
   <div class="canvas-world" #canvasWorld [class.pending-mode]="pendingFrom" [style.width.px]="canvasWidth()"
-    [style.height.px]="canvasHeight()" (mousemove)="onMouseMove($event)" (click)="pendingFrom = null">
+    [style.height.px]="canvasHeight()" (mousemove)="onMouseMove($event)" (click)="deselectAll()">
 
     <!-- ── SVG arrow layer (above nodes via z-index, pointer-events pass-through) -->
     <svg class="arrows-svg" [attr.width]="canvasWidth()" [attr.height]="canvasHeight()">
@@ -62,10 +62,13 @@
 
     <!-- ── Draggable nodes ─────────────────────────────────────────────── -->
     @for (node of nodes(); track node.id) {
-    <div class="factory-node" [class.node-is-source]="pendingFrom?.node?.id === node.id"
-      [class.node-is-target]="pendingFrom && pendingFrom.node.id !== node.id" [style.left.px]="node.x"
-      [style.top.px]="node.y" cdkDrag (cdkDragMoved)="onDragMoved($event, node)"
-      (cdkDragEnded)="onDragEnded($event, node)" (click)="$event.stopPropagation()">
+    <div class="factory-node"
+      [class.node-is-source]="pendingFrom?.node?.id === node.id"
+      [class.node-is-target]="pendingFrom && pendingFrom.node.id !== node.id"
+      [class.node-selected]="selectedNodeId() === node.id"
+      [style.left.px]="node.x" [style.top.px]="node.y"
+      cdkDrag (cdkDragMoved)="onDragMoved($event, node)" (cdkDragEnded)="onDragEnded($event, node)"
+      (click)="selectNode(node, $event)">
 
       <!-- Input port — left edge, accepts incoming arrows -->
       <div class="port-wrapper">
