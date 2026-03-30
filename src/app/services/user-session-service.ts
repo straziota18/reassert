@@ -15,7 +15,7 @@ export class UserSessionService {
 
   readonly activeLayout: WritableSignal<FactoryLayout | null> = signal(null);
 
-  readonly problems: Signal<{[factoryId: string]: FactoryProblem}> = computed(() => {
+  readonly factoryProblems: Signal<{[factoryId: string]: FactoryProblem}> = computed(() => {
     const activeLayout = this.activeLayout();
     if (activeLayout === null) {
       return {};
