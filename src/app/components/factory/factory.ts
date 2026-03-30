@@ -1,16 +1,16 @@
-import { Component, computed, ElementRef, HostListener, inject, Signal, signal, ViewChild } from '@angular/core';
+import { Component, computed, ElementRef, HostListener, inject, ViewChild } from '@angular/core';
 import { CdkDrag, CdkDragEnd, CdkDragHandle, CdkDragMove } from '@angular/cdk/drag-drop';
 import { CdkScrollable } from '@angular/cdk/scrolling';
 import { MatAnchor, MatButton } from "@angular/material/button";
 import { MatIcon } from "@angular/material/icon";
 import * as _ from 'lodash';
 import { MatDialog } from '@angular/material/dialog';
-import { ItemSelectDialog, ItemSelectDialogData } from '../item-select-dialog/item-select-dialog';
-import { FactoryCanvasNode, Connection, getNbInputs, getNbOutputs, getNodeLabel, isMissingFormula, isActiveFactory, ActiveFactory, ProductionVariant } from '../../services/model';
+import { ItemSelectDialog, ItemSelectDialogData, ItemSelectDialogResult } from '../item-select-dialog/item-select-dialog';
+import { FactoryCanvasNode, Connection, getNbInputs, getNbOutputs, getNodeLabel, isMissingFormula, isActiveFactory, ActiveFactory } from '../../services/model';
 import { UserSessionService } from '../../services/user-session-service';
 import { OptimizationService } from '../../services/optimization-service';
 
-const NODE_W = 164;
+const NODE_W = 180;
 const NODE_H = 96;
 const PORT_H = 16;
 const CANVAS_PADDING = 120;
@@ -228,13 +228,13 @@ export class Factory {
 
   addNode(): void {
     this.optimizationService.loadUniverse().then(universe => {
-      const ref = this.matDialog.open<ItemSelectDialog, ItemSelectDialogData, string>(
+      const ref = this.matDialog.open<ItemSelectDialog, ItemSelectDialogData, ItemSelectDialogResult>(
         ItemSelectDialog,
         {
           data: {
             title: 'Select a factory',
-            items: Object.keys(universe.factories)
-        },
+            items: Object.keys(universe.factories),
+          },
           width: '420px',
           height: '65vh',
           maxWidth: '95vw',
@@ -242,9 +242,9 @@ export class Factory {
         }
       );
 
-      ref.afterClosed().subscribe(selected => {
-        if (!selected) return;
-        const factory = universe.factories[selected];
+      ref.afterClosed().subscribe(result => {
+        if (!result) return;
+        const factory = universe.factories[result.label];
         this.userSessionService.addNewFactory(factory, null);
       });
     });
@@ -272,37 +272,21 @@ export class Factory {
     return getNbInputs(node) === 0 ? 'Raw material' : `${nbInputs}/${getNbInputs(node)} inputs available`;
   }
 
-  // ── Production variant helpers ───────────────────────────────────────────
-
-  /** Returns the list of variants for the node's active recipe, or [] if none. */
-  getProductionVariants(node: FactoryCanvasNode): ProductionVariant[] {
-    if (!isActiveFactory(node)) return [];
-    const recipe = (node.factory as ActiveFactory).activeRecipe();
-    return recipe?.productionVariants ?? [];
-  }
-
-  /** Returns the currently selected variant name, or null (= default cycle). */
-  getActiveVariant(node: FactoryCanvasNode): string | null {
-    if (!isActiveFactory(node)) return null;
-    return (node.factory as ActiveFactory).activeProductionVariant();
-  }
-
-  /** Called when the user picks a variant from the selector. */
-  setProductionVariant(node: FactoryCanvasNode, event: Event): void {
-    const value = (event.target as HTMLSelectElement).value || null;
-    (node.factory as ActiveFactory).activeProductionVariant.set(value);
-    this.userSessionService.updateNode(node);
-  }
-
   startFormulaChange(node: FactoryCanvasNode) {
     this.optimizationService.loadUniverse().then(universe => {
-      const ref = this.matDialog.open<ItemSelectDialog, ItemSelectDialogData, string>(
+      const ref = this.matDialog.open<ItemSelectDialog, ItemSelectDialogData, ItemSelectDialogResult>(
         ItemSelectDialog,
         {
           data: {
             title: 'Select a recipe',
-            items: Object.values(universe.resources).filter(r => r.createdIn.id === node.factory.id).map(it => it.id)
-        },
+            subTitle: 'Select a variant',
+            items: Object.values(universe.resources)
+              .filter(r => r.createdIn.id === node.factory.id)
+              .map(r => r.productionVariants?.length
+                ? { label: r.id, subItems: ['Normal', ...r.productionVariants.map(v => v.name)] }
+                : r.id
+              ),
+          },
           width: '420px',
           height: '65vh',
           maxWidth: '95vw',
@@ -310,10 +294,11 @@ export class Factory {
         }
       );
 
-      ref.afterClosed().subscribe(selected => {
-        if (!selected) return;
-        const resource = universe.resources[selected];
+      ref.afterClosed().subscribe(result => {
+        if (!result) return;
+        const resource = universe.resources[result.label];
         (<ActiveFactory>node.factory).activeRecipe.set(resource);
+        (<ActiveFactory>node.factory).activeProductionVariant.set(result.subItem === 'Normal' ? null : result.subItem);
         this.userSessionService.updateNode(node);
       });
     });

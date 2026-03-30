@@ -1,4 +1,4 @@
-<h2 mat-dialog-title>{{ data.title }}</h2>
+<h2 mat-dialog-title>{{ step() === 'main' ? data.title : (data.subTitle ?? 'Select a variant') }}</h2>
 
 <mat-dialog-content>
   <!-- Search filter — keyboard events bubble up from here -->
@@ -10,22 +10,46 @@
     <mat-icon matSuffix>search</mat-icon>
   </mat-form-field>
 
-  <!-- Items list -->
-  <mat-nav-list class="items-list">
-    @for (item of filteredItems(); track item; let i = $index) {
-      <mat-list-item #itemEl
-        (click)="select(item)"
-        [class.highlighted]="highlightedIndex() === i"
-        class="item-row">
-        <span matListItemTitle>{{ item }}</span>
-        <div matListItemMeta><mat-icon>chevron_right</mat-icon></div>
-      </mat-list-item>
-    } @empty {
-      <p class="no-results">No results for "<em>{{ query() }}</em>"</p>
-    }
-  </mat-nav-list>
+  <!-- Step 1: main items list -->
+  @if (step() === 'main') {
+    <mat-nav-list class="items-list">
+      @for (item of filteredItems(); track item.label; let i = $index) {
+        <mat-list-item #itemEl
+          (click)="select(item)"
+          [class.highlighted]="highlightedIndex() === i"
+          class="item-row">
+          <span matListItemTitle>{{ item.label }}</span>
+          <div matListItemMeta>
+            <mat-icon>{{ item.subItems?.length ? 'chevron_right' : 'check' }}</mat-icon>
+          </div>
+        </mat-list-item>
+      } @empty {
+        <p class="no-results">No results for "<em>{{ query() }}</em>"</p>
+      }
+    </mat-nav-list>
+  }
+
+  <!-- Step 2: sub-items (variants) list -->
+  @if (step() === 'sub') {
+    <mat-nav-list class="items-list">
+      @for (sub of filteredSubItems(); track sub; let i = $index) {
+        <mat-list-item #itemEl
+          (click)="selectSub(sub)"
+          [class.highlighted]="highlightedIndex() === i"
+          class="item-row">
+          <span matListItemTitle>{{ sub }}</span>
+          <div matListItemMeta><mat-icon>chevron_right</mat-icon></div>
+        </mat-list-item>
+      } @empty {
+        <p class="no-results">No results for "<em>{{ query() }}</em>"</p>
+      }
+    </mat-nav-list>
+  }
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
+  @if (step() === 'sub') {
+    <button mat-button (click)="back()"><mat-icon>arrow_back</mat-icon> Back</button>
+  }
   <button mat-button (click)="cancel()">Cancel</button>
 </mat-dialog-actions>

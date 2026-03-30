@@ -7,11 +7,24 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 
+export interface ItemSelectDialogItem {
+  label: string;
+  /** If present and non-empty, selecting this item opens a second step to pick a sub-item. */
+  subItems?: string[];
+}
+
+export interface ItemSelectDialogResult {
+  label: string;
+  subItem: string | null;
+}
+
 export interface ItemSelectDialogData {
-  /** Dialog title / prompt shown at the top. */
+  /** Dialog title shown in step 1. */
   title: string;
-  /** Flat list of string items the user can pick from. */
-  items: string[];
+  /** Title shown in step 2. Defaults to 'Select a variant'. */
+  subTitle?: string;
+  /** Items to pick from. Plain strings are treated as items with no sub-items. */
+  items: (string | ItemSelectDialogItem)[];
 }
 
 @Component({
@@ -29,7 +42,7 @@ export interface ItemSelectDialogData {
   styleUrl: './item-select-dialog.scss',
 })
 export class ItemSelectDialog implements AfterViewInit {
-  private readonly dialogRef = inject<MatDialogRef<ItemSelectDialog, string>>(MatDialogRef);
+  private readonly dialogRef = inject<MatDialogRef<ItemSelectDialog, ItemSelectDialogResult>>(MatDialogRef);
   private readonly el = inject(ElementRef<HTMLElement>);
   readonly data = inject<ItemSelectDialogData>(MAT_DIALOG_DATA);
 
@@ -37,19 +50,33 @@ export class ItemSelectDialog implements AfterViewInit {
 
   readonly query = signal('');
   readonly highlightedIndex = signal(0);
+  readonly step = signal<'main' | 'sub'>('main');
+  readonly selectedItem = signal<ItemSelectDialogItem | null>(null);
+
+  /** Normalize all items to `ItemSelectDialogItem` once at construction time. */
+  private readonly normalizedItems: ItemSelectDialogItem[] = this.data.items.map(i =>
+    typeof i === 'string' ? { label: i } : i
+  );
 
   readonly filteredItems = computed(() => {
     const q = this.query().trim().toLowerCase();
-    const filteredItems = q
-      ? this.data.items.filter(item => item.toLowerCase().includes(q))
-      : this.data.items;
-    return filteredItems.sort((a, b) => a.localeCompare(b));
+    const items = q
+      ? this.normalizedItems.filter(item => item.label.toLowerCase().includes(q))
+      : this.normalizedItems;
+    return [...items].sort((a, b) => a.label.localeCompare(b.label));
+  });
+
+  readonly filteredSubItems = computed(() => {
+    const q = this.query().trim().toLowerCase();
+    const subs = this.selectedItem()?.subItems ?? [];
+    return q ? subs.filter(s => s.toLowerCase().includes(q)) : subs;
   });
 
   constructor() {
-    // Reset highlight to top whenever the filter changes.
+    // Reset highlight to top whenever the filter or step changes.
     effect(() => {
       this.query();
+      this.step();
       this.highlightedIndex.set(0);
     });
   }
@@ -65,7 +92,9 @@ export class ItemSelectDialog implements AfterViewInit {
   }
 
   onKeydown(event: KeyboardEvent): void {
-    const items = this.filteredItems();
+    const items = this.step() === 'main'
+      ? this.filteredItems()
+      : this.filteredSubItems();
     if (items.length === 0) return;
 
     switch (event.key) {
@@ -86,8 +115,12 @@ export class ItemSelectDialog implements AfterViewInit {
       case 'Enter': {
         event.preventDefault();
         const idx = this.highlightedIndex();
-        if (idx >= 0 && idx < items.length) {
-          this.select(items[idx]);
+        if (this.step() === 'main') {
+          const item = this.filteredItems()[idx];
+          if (item) this.select(item);
+        } else {
+          const sub = this.filteredSubItems()[idx];
+          if (sub !== undefined) this.selectSub(sub);
         }
         break;
       }
@@ -98,8 +131,23 @@ export class ItemSelectDialog implements AfterViewInit {
     this.itemElements.get(index)?.nativeElement?.scrollIntoView({ block: 'nearest' });
   }
 
-  select(item: string): void {
-    this.dialogRef.close(item);
+  select(item: ItemSelectDialogItem): void {
+    if (item.subItems?.length) {
+      this.selectedItem.set(item);
+      this.query.set('');
+      this.step.set('sub');
+    } else {
+      this.dialogRef.close({ label: item.label, subItem: null });
+    }
+  }
+
+  selectSub(subItem: string): void {
+    this.dialogRef.close({ label: this.selectedItem()!.label, subItem });
+  }
+
+  back(): void {
+    this.step.set('main');
+    this.query.set('');
   }
 
   cancel(): void {
