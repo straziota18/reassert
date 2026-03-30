@@ -99,8 +99,10 @@
         <div class="buttons-wrapper">
           <button class="node-btn" title="Delete node"
             (click)="deleteNode(node, $event)"><mat-icon>delete</mat-icon></button>
+          @if (isActiveFactory(node)) {
           <button class="node-btn" title="Edit recipe"
             (click)="startFormulaChange(node)"><mat-icon>edit_calendar</mat-icon></button>
+          }
         </div>
       </div>
 

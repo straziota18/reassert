@@ -134,9 +134,9 @@ export interface FactoryLayout extends ReassertObject {
 
 export const modulatorActiveRecipeSignal: (layout: FactoryLayout, factoryCanvasId: string) => Signal<string[]> = (layout, factoryCanvasId) => {
     return computed(() => {
-        return _.concat(layout.connections()
+        return _.uniq(_.concat(layout.connections()
             .filter(c => c.toId === factoryCanvasId)
             .flatMap(c => layout.factories().find(f => f.id === c.fromId)!.activeFormula())
-        );
+        ));
     });
 };

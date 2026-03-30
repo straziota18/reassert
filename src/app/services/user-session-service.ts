@@ -1,7 +1,7 @@
 import { computed, inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { ObjectStoreService } from './object-store-service';
 import { OptimizationService } from './optimization-service';
-import { ActiveFactory, activeFactoryActiveRecipeSignal, Connection, createActiveFactory, Factory, FactoryCanvasNode, FactoryLayout, isActiveFactory, isVirtualLayout, Modulator, modulatorActiveRecipeSignal, Resource, VirtualFactory, virtualFactoryActiveRecipeSignal } from './model';
+import { ActiveFactory, activeFactoryActiveRecipeSignal, Connection, createActiveFactory, Factory, FactoryCanvasNode, FactoryLayout, isActiveFactory, isModulator, isVirtualLayout, Modulator, modulatorActiveRecipeSignal, Resource, VirtualFactory, virtualFactoryActiveRecipeSignal } from './model';
 import * as _ from 'lodash';
 
 const ACTIVE_LAYOUT_KEY = 'reassert:active-layout-id';
@@ -17,6 +17,7 @@ export class UserSessionService {
 
   readonly factoryProblems: Signal<{ [factoryId: string]: string }> = computed(() => {
     const activeLayout = this.activeLayout();
+    // TODO only recompute problems when connections have created/deleted, factorties have been created/deleted, recipes have been changed
     if (activeLayout === null) {
       return {};
     }
@@ -26,7 +27,119 @@ export class UserSessionService {
     const nodeById = new Map(factories.map(f => [f.id, f]));
     const result: { [factoryId: string]: string } = {};
 
+    const computeUpstreamRequirements = (fromId: string, fromOutputId: number, visited = new Set<string>()): { [resouceId: string]: number } => {
+      if (visited.has(fromId)) return {}; // guard against cycles
+      const sourceNode = nodeById.get(fromId);
+      if (!sourceNode) return {};
+
+      const upstreamConnections = connections.filter(c => c.fromId === fromId && c.fromOutputId === fromOutputId);
+      if (!upstreamConnections) return {};
+
+      const result: {[resId: string]: number} = {};
+      for (const conn of upstreamConnections) { // this loop should only contain 1 item
+        const targetNode = nodeById.get(conn.toId);
+        if (!targetNode) continue;
+
+        if (isModulator(targetNode)) {
+          const modulator = targetNode.factory as Modulator;
+          const newVisited = new Set(visited).add(fromId);
+          for (let outputId = 0; outputId < modulator.nbOutputs; outputId++) {
+            const targetRequirements = computeUpstreamRequirements(targetNode.id, outputId, newVisited);
+            Object.keys(targetRequirements).forEach(resId => {
+              if (!result[resId]) {
+                result[resId] = 0.0;
+              }
+              result[resId] += targetRequirements[resId];
+            });
+          }
+        } else if (isActiveFactory(targetNode)) {
+          const af = (targetNode.factory as ActiveFactory);
+          const activeRecipe = af.activeRecipe();
+          if (!activeRecipe) continue
+          const nbCyclesPerMin = 60 / activeRecipe.productionCycle.seconds;
+          return _.fromPairs(activeRecipe.requires.map(req => [req.input.id, req.amountPerCycle * nbCyclesPerMin]))
+        }
+      }
+      return result;
+    }
+
+    const computeOutputRate = (fromId: string, fromOutputId: number, visited = new Set<string>()): { [resourceId: string]: number } => {
+      if (visited.has(fromId)) return {}; // guard against cycles
+      const sourceNode = nodeById.get(fromId);
+      if (!sourceNode) return {};
+
+      if (isVirtualLayout(sourceNode)) {
+        const output = (sourceNode.factory as VirtualFactory).outputs[fromOutputId];
+        return output ? { [output.resource.id]: output.amountPerMinute } : {};
+      } else if (isActiveFactory(sourceNode)) {
+        const srcFactory = sourceNode.factory as ActiveFactory;
+        const srcRecipe = srcFactory.activeRecipe();
+        if (!srcRecipe) return {};
+        const variant = srcFactory.activeProductionVariant();
+        const pv = variant ? srcRecipe.productionVariants?.find(v => v.name === variant) : null;
+        const cycleSeconds = pv ? pv.seconds : srcRecipe.productionCycle.seconds;
+        const cycleUnits = pv ? pv.nbUnits : srcRecipe.productionCycle.nbUnits;
+        return { [srcRecipe.id]: (60 / cycleSeconds) * cycleUnits }; // theoretical... if issues downstream, output rate is lower
+      } else {
+        // Modulator: aggregate all incoming rates and substract demand from other recipients
+        const modulator = sourceNode.factory as Modulator;
+        if (modulator.nbOutputs === 0) return {};
+        const newVisited = new Set(visited).add(fromId);
+
+        const externalConsumers: {[resId: string]: number} = {};
+        for (let outputId = 0; outputId < modulator.nbOutputs; outputId++) {
+          if (outputId === fromOutputId){ 
+            continue;
+          }
+
+          const outputConsumers = computeUpstreamRequirements(fromId, outputId);
+          Object.keys(outputConsumers).forEach(resId => {
+            if (!externalConsumers[resId]) {
+              externalConsumers[resId] = 0.0;
+            }
+            externalConsumers[resId] += outputConsumers[resId];
+          });
+        }
+        const modulatorResult: { [resourceId: string]: number } = {};
+        for (const incomingConnection of connections.filter(c => c.toId === fromId)) {
+          const currentOutput = computeOutputRate(incomingConnection.fromId, incomingConnection.fromOutputId, newVisited);
+          for (const [resId, rate] of _.toPairs(currentOutput)) {
+            if (!modulatorResult[resId]) {
+              modulatorResult[resId] = 0.0;
+            }
+            modulatorResult[resId] += rate;
+          }
+        }
+        return _.fromPairs(_.toPairs(modulatorResult).map(([resId, rate]) => [resId, rate - (externalConsumers[resId] || 0.0)]));
+      }
+    };
+
+    const getOutputResourceIds = (fromId: string, fromOutputId: number, visited = new Set<string>()): Set<string> => {
+      if (visited.has(fromId)) return new Set();
+      const sourceNode = nodeById.get(fromId);
+      if (!sourceNode) return new Set();
+
+      if (isVirtualLayout(sourceNode)) {
+        const output = (sourceNode.factory as VirtualFactory).outputs[fromOutputId];
+        return output ? new Set([output.resource.id]) : new Set();
+      } else if (isActiveFactory(sourceNode)) {
+        const recipe = (sourceNode.factory as ActiveFactory).activeRecipe();
+        return recipe ? new Set([recipe.id]) : new Set();
+      } else {
+        // Modulator: union of all resources from every incoming connection
+        const newVisited = new Set(visited).add(fromId);
+        const resourceIds = new Set<string>();
+        for (const inConn of connections.filter(c => c.toId === fromId)) {
+          for (const rid of getOutputResourceIds(inConn.fromId, inConn.fromOutputId, newVisited)) {
+            resourceIds.add(rid);
+          }
+        }
+        return resourceIds;
+      }
+    };
+
     for (const node of factories) {
+      // TODO compute bottlenecks on modulators... long term
       if (!isActiveFactory(node)) continue;
 
       const activeFactory = node.factory as ActiveFactory;
@@ -43,58 +156,39 @@ export class UserSessionService {
 
       const incomingConnections = connections.filter(c => c.toId === node.id);
 
-      // Check 2: Missing inputs — count how many required input slots have a connection
-      const connectedInputIds = new Set(incomingConnections.map(c => c.toInputId));
-      const connectedCount = requiredInputs.filter((_, idx) => connectedInputIds.has(idx)).length;
+      // Check 2: Missing inputs — verify the required resource is actually being injected
+      const missingCount = requiredInputs.filter((req, idx) => {
+        const connsForSlot = incomingConnections.filter(c => c.toInputId === idx);
+        if (connsForSlot.length === 0) return true;
+        return !connsForSlot.some(conn => getOutputResourceIds(conn.fromId, conn.fromOutputId).has(req.input.id));
+      }).length;
 
-      if (connectedCount < requiredInputs.length) {
-        result[node.id] = `Missing ${connectedCount}/${requiredInputs.length} inputs`;
+      if (missingCount > 0) {
+        result[node.id] = `Missing ${missingCount}/${requiredInputs.length} inputs`;
         continue;
       }
 
       // Check 3: Inputs are too low — compare effective supply rate vs required rate
       const cyclesPerMin = 60 / recipe.productionCycle.seconds;
-      let tooLowCount = 0;
+      const missingInputsPerMin = _.fromPairs(requiredInputs.map(r => [r.input.id, r.amountPerCycle * cyclesPerMin]))
 
       for (let inputIdx = 0; inputIdx < requiredInputs.length; inputIdx++) {
-        const requiredAmountPerMin = requiredInputs[inputIdx].amountPerCycle * cyclesPerMin;
         const connectionsToInput = incomingConnections.filter(c => c.toInputId === inputIdx);
 
-        let totalSupply = 0;
         for (const conn of connectionsToInput) {
-          const sourceNode = nodeById.get(conn.fromId);
-          if (!sourceNode) continue;
-
-          let sourceOutputRate = 0;
-          if (isVirtualLayout(sourceNode)) {
-            const output = (sourceNode.factory as VirtualFactory).outputs[conn.fromOutputId];
-            if (output) sourceOutputRate = output.amountPerMinute;
-          } else if (isActiveFactory(sourceNode)) {
-            const srcFactory = sourceNode.factory as ActiveFactory;
-            const srcRecipe = srcFactory.activeRecipe();
-            if (srcRecipe) {
-              const variant = srcFactory.activeProductionVariant();
-              const pv = variant ? srcRecipe.productionVariants?.find(v => v.name === variant) : null;
-              const cycleSeconds = pv ? pv.seconds : srcRecipe.productionCycle.seconds;
-              const cycleUnits = pv ? pv.nbUnits : srcRecipe.productionCycle.nbUnits;
-              sourceOutputRate = (60 / cycleSeconds) * cycleUnits;
+          const sourceOutputRate = computeOutputRate(conn.fromId, conn.fromOutputId);
+          for (const [resId, rate] of _.toPairs(sourceOutputRate)) {
+            if (!missingInputsPerMin[resId]) {
+              continue;
             }
+            missingInputsPerMin[resId] -= rate;
           }
-
-          // Split output evenly among all recipients of this source output port
-          const recipientCount = connections.filter(
-            c => c.fromId === conn.fromId && c.fromOutputId === conn.fromOutputId
-          ).length;
-          totalSupply += recipientCount > 0 ? sourceOutputRate / recipientCount : 0;
-        }
-
-        if (totalSupply < requiredAmountPerMin) {
-          tooLowCount++;
         }
       }
 
-      if (tooLowCount > 0) {
-        result[node.id] = `${tooLowCount}/${requiredInputs.length} inputs are too low`;
+      const incompleteInputs = Object.values(missingInputsPerMin).filter(v => v > 0);
+      if (incompleteInputs.length > 0) {
+        result[node.id] = `${incompleteInputs.length}/${requiredInputs.length} inputs are too low`;
       }
     }
 
@@ -298,9 +392,9 @@ export class UserSessionService {
     const newNode = this.createNode(
       activeLayout,
       () => {
-          const activeFactory = createActiveFactory(factory, activeRecipe);
-          activeFactory.activeProductionVariant.set(null);
-          return activeFactory;
+        const activeFactory = createActiveFactory(factory, activeRecipe);
+        activeFactory.activeProductionVariant.set(null);
+        return activeFactory;
       },
       (layout, f, id) => activeFactoryActiveRecipeSignal(f as ActiveFactory),
       0,
