@@ -354,7 +354,7 @@ export class Factory implements AfterViewInit {
 
   reorganize() {
     this.optimizationService.reorganizeNodes(this.userSessionService.activeLayout()).then(newLayout => {
-      //
+      this.userSessionService.applyOptimizedLayout(newLayout);
     });
   }
 

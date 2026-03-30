@@ -6,7 +6,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { ItemSelectDialog, ItemSelectDialogData } from '../item-select-dialog/item-select-dialog';
+import { ItemSelectDialog, ItemSelectDialogData, ItemSelectDialogResult } from '../item-select-dialog/item-select-dialog';
 import { ActiveFactory, FactoryCanvasNode, Resource, VirtualFactory } from '../../services/model';
 import { OptimizationService } from '../../services/optimization-service';
 import { UserSessionService } from '../../services/user-session-service';
@@ -63,7 +63,7 @@ export class Schedule {
     const rows: { [resourceId: string]: ScheduleRow } = {};
     const targets = layout.targets();
     for (const [resourceId, target] of _.toPairs(targets)) {
-      if (!rows[resourceId]) {        
+      if (!rows[resourceId]) {
         rows[resourceId] = createScheduleRow(targets[resourceId].resource);
       }
       rows[resourceId].targetPerMin = target.target;
@@ -80,7 +80,7 @@ export class Schedule {
             rows[output.resource.id] = createScheduleRow(output.resource);
           }
           rows[output.resource.id].producedPerMin += output.amountPerMinute;
-        }      
+        }
       } else if (!_.hasIn(factory, 'nbOutputs')) {
         // ActiveFactory – derive rates from the active recipe's production cycle
         const af = factory as ActiveFactory;
@@ -123,8 +123,15 @@ export class Schedule {
   }
 
   onAddFactory(row: ScheduleRow) {
-    if (!row.sampleFactoryNode) return;
-    this.userSession.duplicateNode(row.sampleFactoryNode, 40, 40);
+    this.optimizationService.loadUniverse().then(universe => {
+      if (row.sampleFactoryNode) {
+        this.userSession.duplicateNode(row.sampleFactoryNode, 40, 40);
+      } else {
+        const resourceObj = universe.resources[row.resource];
+        this.userSession.addNewFactory(resourceObj.createdIn, resourceObj)
+      }
+
+    });
   }
 
   onRemoveFactory(row: ScheduleRow) {
@@ -136,7 +143,7 @@ export class Schedule {
     this.optimizationService.loadUniverse().then(universe => {
       const items = Object.keys(universe.resources);
 
-      const dialogRef = this.dialog.open<ItemSelectDialog, ItemSelectDialogData, string>(
+      const dialogRef = this.dialog.open<ItemSelectDialog, ItemSelectDialogData, ItemSelectDialogResult>(
         ItemSelectDialog,
         {
           data: { title: 'Select a resource target', items },
@@ -150,7 +157,7 @@ export class Schedule {
 
       dialogRef.afterClosed().subscribe(selected => {
         if (selected) {
-          const resourceObject = universe.resources[selected];
+          const resourceObject = universe.resources[selected.label];
           this.userSession.addNewFactory(resourceObject.createdIn, resourceObject);
         }
       });

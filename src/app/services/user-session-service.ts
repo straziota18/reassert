@@ -377,6 +377,33 @@ export class UserSessionService {
     this.objectStoreService.saveLayout(activeLayout);
   }
 
+  /**
+   * Bulk-applies node positions from an optimized layout back to the active
+   * layout.  Only `x`, `y`, and `freeDragPos` are updated; all other node
+   * state (factory, connections, recipe …) is preserved in the live signals.
+   */
+  public applyOptimizedLayout(optimizedLayout: FactoryLayout): void {
+    const activeLayout = this.activeLayout();
+    if (!activeLayout) return;
+
+    const posById = new Map(
+      optimizedLayout.factories().map(n => [n.id, { x: n.x, y: n.y, freeDragPos: { ...n.freeDragPos } }])
+    );
+
+    activeLayout.factories.update(nodes =>
+      nodes.map(node => {
+        const pos = posById.get(node.id);
+        if (!pos) return node;
+        node.x            = pos.x;
+        node.y            = pos.y;
+        node.freeDragPos  = pos.freeDragPos;
+        return node;
+      })
+    );
+
+    this.objectStoreService.saveLayout(activeLayout);
+  }
+
   public addNewFactory(factory: Factory, activeRecipe: Resource | null) {
     const activeLayout = this.activeLayout();
     if (!activeLayout) return;
