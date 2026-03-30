@@ -47,6 +47,29 @@
   background-color: color-mix(in srgb, var(--mat-sys-tertiary-container) 20%, transparent);
 }
 
+.nb-factories-cell {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  height: 100%;
+}
+
+.nb-factories-value {
+  min-width: 1.5em;
+}
+
+.row-actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  visibility: hidden;
+}
+
+tr.mat-mdc-row:hover .row-actions {
+  visibility: visible;
+}
+
 .no-data-cell {
   padding: 32px 16px;
   text-align: center;

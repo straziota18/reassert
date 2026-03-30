@@ -7,7 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ItemSelectDialog, ItemSelectDialogData } from '../item-select-dialog/item-select-dialog';
-import { ActiveFactory, Resource, VirtualFactory } from '../../services/model';
+import { ActiveFactory, FactoryCanvasNode, Resource, VirtualFactory } from '../../services/model';
 import { OptimizationService } from '../../services/optimization-service';
 import { UserSessionService } from '../../services/user-session-service';
 import * as _ from 'lodash';
@@ -19,6 +19,8 @@ export interface ScheduleRow {
   producedPerMin: number;
   consumedPerMin: number;
   nbFactories: number;
+  /** One representative factory node for this row (used for add/remove operations). */
+  sampleFactoryNode: FactoryCanvasNode | null;
 }
 
 const createScheduleRow: (resource: Resource) => ScheduleRow = (resource: Resource) => {
@@ -28,7 +30,8 @@ const createScheduleRow: (resource: Resource) => ScheduleRow = (resource: Resour
     targetPerMin: 0.0,
     factoryId: resource.createdIn.id,
     resource: resource.id,
-    nbFactories: 0
+    nbFactories: 0,
+    sampleFactoryNode: null,
   }
 }
 
@@ -97,6 +100,9 @@ export class Schedule {
           }
           rows[recipe.id].producedPerMin += activeCycle.nbUnits * cyclesPerMin;
           rows[recipe.id].nbFactories += 1;
+          if (!rows[recipe.id].sampleFactoryNode) {
+            rows[recipe.id].sampleFactoryNode = node;
+          }
 
           // One row per consumed input
           for (const req of recipe.requires) {
@@ -111,6 +117,20 @@ export class Schedule {
 
     return Object.values(rows);
   });
+
+  onAddMissingFactories(row: ScheduleRow) {
+    // TODO: implement add-missing-factories logic
+  }
+
+  onAddFactory(row: ScheduleRow) {
+    if (!row.sampleFactoryNode) return;
+    this.userSession.duplicateNode(row.sampleFactoryNode, 40, 40);
+  }
+
+  onRemoveFactory(row: ScheduleRow) {
+    if (!row.sampleFactoryNode || row.nbFactories === 0) return;
+    this.userSession.removeNode(row.sampleFactoryNode);
+  }
 
   onAddResourceTarget() {
     this.optimizationService.loadUniverse().then(universe => {
