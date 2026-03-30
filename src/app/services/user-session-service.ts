@@ -143,7 +143,10 @@ export class UserSessionService {
     if (activeRecipe) {
       // is new target
       const cyclesPerMin = 60 / activeRecipe.productionCycle.seconds;
-      activeLayout.targets.update(targets => _.set(targets, activeRecipe.id, cyclesPerMin * activeRecipe.productionCycle.nbUnits));
+      activeLayout.targets.update(targets => _.set(targets, activeRecipe.id, {
+        resource: activeRecipe,
+        target: cyclesPerMin * activeRecipe.productionCycle.nbUnits
+      }));
     }
     activeLayout.factories.update((existingFactories) => {
       const activeFactory = createActiveFactory(factory, activeRecipe);
