@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, filter, firstValueFrom, forkJoin, map } from 'rxjs';
-import { Factory, Resource, Universe } from './model';
+import { Factory, Modulator, Resource, Universe } from './model';
 import * as _ from 'lodash';
 
 interface RawResource {
@@ -26,9 +26,10 @@ export class OptimizationService {
       forkJoin({
         factories: this.http.get<Factory[]>(`${this.BASE}/factories.json`),
         resources: this.http.get<RawResource[]>(`${this.BASE}/resources.json`),
+        modulators: this.http.get<Modulator[]>(`${this.BASE}/modulators.json`),
       })
         .pipe(
-          map(({ factories, resources }) => {
+          map(({ factories, resources, modulators }) => {
             // Index factories by ID for O(1) lookup
             const factoryMap = new Map<string, Factory>(factories.map(f => [f.id, f]));
 
@@ -56,7 +57,8 @@ export class OptimizationService {
 
             return {
               factories: _.zipObject(factories.map(it => it.id), factories),
-              resources: Object.fromEntries(resourceMap.entries())
+              resources: Object.fromEntries(resourceMap.entries()),
+              modulators: _.zipObject(modulators.map(it => it.id), modulators),
             } satisfies Universe;
           })
         )

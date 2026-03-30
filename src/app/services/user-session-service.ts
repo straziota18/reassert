@@ -1,7 +1,7 @@
-import { computed, inject, Injectable, signal, WritableSignal } from '@angular/core';
+import { computed, inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { ObjectStoreService } from './object-store-service';
 import { OptimizationService } from './optimization-service';
-import { Connection, createActiveFactory, Factory, FactoryCanvasNode, FactoryLayout, Resource } from './model';
+import { Connection, createActiveFactory, Factory, FactoryCanvasNode, FactoryLayout, FactoryProblem, isActiveFactory, Resource, VirtualFactory } from './model';
 import * as _ from 'lodash';
 
 const ACTIVE_LAYOUT_KEY = 'reassert:active-layout-id';
@@ -14,6 +14,35 @@ export class UserSessionService {
   private readonly objectStoreService = inject(ObjectStoreService);
 
   readonly activeLayout: WritableSignal<FactoryLayout | null> = signal(null);
+
+  readonly problems: Signal<{[factoryId: string]: FactoryProblem}> = computed(() => {
+    const activeLayout = this.activeLayout();
+    if (activeLayout === null) {
+      return {};
+    }
+    const connections = activeLayout.connections();
+    const factories = activeLayout.factories();
+    const factoryProductions: {[factoryId: string]: {
+      [resouceId: string]: {
+        productionPerMinute: number,
+        consumptionPerMinute: number,
+      }
+    }} = _.fromPairs(factories.map(f => {
+      if (isActiveFactory(f)) {
+        return [];
+      } else {
+        const virtualFactory = f.factory as VirtualFactory;
+        const outputs = virtualFactory.outputs.map(it => {
+          return [it.resource.id, it.amountPerMinute];
+        });
+        return [f.id, _.fromPairs(outputs)];
+      }
+    }));
+    return _.fromPairs(factories.filter(it => isActiveFactory(it)).map(f => {
+      const incomingConnections = connections.filter(it => it.toId === f.id);
+      return [f.id, ''];
+    }).filter(a => a.length === 2));
+  });
 
   initialize(): Promise<void> {
     return new Promise<void>((resolve, reject) => {

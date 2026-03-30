@@ -11,9 +11,16 @@ export interface Factory extends ReassertObject {
     nbInputs: number;
 }
 
+export interface Modulator extends ReassertObject {
+    nbInputs: number;
+    nbOutputs: number;
+}
+
 export interface ActiveFactory extends Factory {
     activeRecipe: WritableSignal<Resource | null>;
 }
+
+export type FactoryProblem = 'Idle' | 'Missing inputs' | 'Sub-optimal inputs';
 
 export interface VirtualFactory extends ReassertObject {
     /** The id of the FactoryLayout this virtual factory belongs to. */
@@ -40,10 +47,11 @@ export interface Resource extends ReassertObject {
 export interface Universe {
     resources: {[id: string]: Resource};
     factories: {[id: string]: Factory};
+    modulators: {[id: string]: Modulator};
 }
 
 export interface FactoryCanvasNode extends ReassertObject {
-  factory: ActiveFactory | VirtualFactory;
+  factory: ActiveFactory | VirtualFactory | Modulator;
   x: number;
   y: number;
   /** Always {0,0} at rest; accumulates CDK transform during a drag, then absorbed into x/y on drop. */
@@ -51,24 +59,44 @@ export interface FactoryCanvasNode extends ReassertObject {
   activeFormula: Signal<string>
 }
 
-export const getNbInputs: (node: FactoryCanvasNode) => number = (node: FactoryCanvasNode) => {
-    return !_.hasIn(node, 'outputs') ? (<ActiveFactory>node.factory).nbInputs : 1;
+export const getNbInputs: (node: FactoryCanvasNode) => number = (node) => {
+    if (isVirtualLayout(node)) {
+        return 0;
+    }
+    if (isModulator(node)) {
+        return (node.factory as Modulator).nbInputs;
+    }
+    return (node.factory as ActiveFactory).nbInputs;
 };
 
-export const getNbOutputs: (node: FactoryCanvasNode) => number = (node: FactoryCanvasNode) => {
-    return _.hasIn(node, 'outputs') ? (<VirtualFactory>node.factory).outputs.length : 1;
+export const getNbOutputs: (node: FactoryCanvasNode) => number = (node) => {
+    if (isVirtualLayout(node)) {
+        return (node.factory as VirtualFactory).outputs.length;
+    }
+    if (isModulator(node)) {
+        return (node.factory as Modulator).nbOutputs;
+    }
+    return 1;
 };
 
-export const getNodeLabel: (node: FactoryCanvasNode) => string = (node: FactoryCanvasNode) => {
-    return !_.hasIn(node, 'outputs') ? (<ActiveFactory>node.factory).id : 'Virtual source';
+export const getNodeLabel: (node: FactoryCanvasNode) => string = (node) => {
+    return isVirtualLayout(node) ? 'Virtual source' : (<ActiveFactory>node.factory).id;
 };
 
-export const isActiveFactory: (node: FactoryCanvasNode) => boolean = (node: FactoryCanvasNode) => {
-    return !_.hasIn(node, 'outputs');
+export const isVirtualLayout: (node: FactoryCanvasNode) => boolean = (node) => {
+    return _.hasIn(node.factory, 'outputs');
 };
+
+export const isModulator: (node: FactoryCanvasNode) => boolean = (node) => {
+    return _.hasIn(node.factory, 'nbInputs') && _.hasIn(node.factory, 'nbOutputs');
+}
+
+export const isActiveFactory: (node: FactoryCanvasNode) => boolean = (node) => {
+    return !(isModulator(node) || isVirtualLayout(node));
+}
 
 export const isMissingFormula: (node: FactoryCanvasNode) => boolean = (node: FactoryCanvasNode) => {
-    return !_.hasIn(node, 'outputs') ? (<ActiveFactory>node.factory).activeRecipe === null : false;
+    return isActiveFactory(node) ? (node.factory as ActiveFactory).activeRecipe === null : false;
 };
 
 export interface Connection extends ReassertObject {

@@ -4,6 +4,7 @@ import {
   Connection,
   FactoryCanvasNode,
   FactoryLayout,
+  Modulator,
   VirtualFactory,
 } from './model';
 import { OptimizationService } from './optimization-service';
@@ -29,9 +30,14 @@ interface SerializedVirtualFactory {
   outputs: { resourceId: string; amountPerMinute: number }[];
 }
 
+interface SerializedModulator {
+  type: 'modulator';
+  id: string;
+}
+
 interface SerializedFactoryCanvasNode {
   id: string;
-  factory: SerializedActiveFactory | SerializedVirtualFactory;
+  factory: SerializedActiveFactory | SerializedVirtualFactory | SerializedModulator;
   x: number;
   y: number;
   freeDragPos: { x: number; y: number };
@@ -128,8 +134,8 @@ export class ObjectStoreService {
   }
 
   private serializeFactory(
-    factory: ActiveFactory | VirtualFactory,
-  ): SerializedActiveFactory | SerializedVirtualFactory {
+    factory: ActiveFactory | VirtualFactory | Modulator,
+  ): SerializedActiveFactory | SerializedVirtualFactory | SerializedModulator {
     if ('outputs' in factory) {
       // VirtualFactory
       const vf = factory as VirtualFactory;
@@ -142,6 +148,12 @@ export class ObjectStoreService {
           amountPerMinute: o.amountPerMinute,
         })),
       } satisfies SerializedVirtualFactory;
+    } else if ('nbOutputs' in factory) {
+      // Modulator
+      return {
+        type: 'modulator',
+        id: factory.id
+      } satisfies SerializedModulator;
     } else {
       // ActiveFactory
       const af = factory as ActiveFactory;
@@ -207,9 +219,9 @@ export class ObjectStoreService {
   }
 
   private deserializeFactory(
-    sf: SerializedActiveFactory | SerializedVirtualFactory,
+    sf: SerializedActiveFactory | SerializedVirtualFactory | SerializedModulator,
     universe: Awaited<ReturnType<OptimizationService['loadUniverse']>>,
-  ): ActiveFactory | VirtualFactory {
+  ): ActiveFactory | VirtualFactory | Modulator {
     if (sf.type === 'virtual') {
       const vf = sf as SerializedVirtualFactory;
       return {
@@ -225,6 +237,12 @@ export class ObjectStoreService {
           return { resource, amountPerMinute: o.amountPerMinute };
         }),
       } satisfies VirtualFactory;
+    } else if (sf.type === 'modulator') {
+      const mod = sf as SerializedModulator;
+      const baseModulator = universe.modulators[mod.id];
+      return {
+        ...baseModulator
+      } satisfies Modulator;
     } else {
       const saf = sf as SerializedActiveFactory;
       const baseFactory = universe.factories[saf.id];
