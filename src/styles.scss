@@ -33,3 +33,8 @@ mat-dialog-content,
 .mat-mdc-dialog-content {
   max-height: none; // let the surface constraint do the work
 }
+
+// Tooltip with newline support
+.multiline-tooltip {
+  white-space: pre-line;
+}

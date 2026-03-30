@@ -5,6 +5,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ItemSelectDialog, ItemSelectDialogData } from '../item-select-dialog/item-select-dialog';
 import { ActiveFactory, Resource, VirtualFactory } from '../../services/model';
 import { OptimizationService } from '../../services/optimization-service';
@@ -40,6 +41,7 @@ const createScheduleRow: (resource: Resource) => ScheduleRow = (resource: Resour
     MatToolbarModule,
     MatButtonModule,
     MatIconModule,
+    MatTooltipModule,
   ],
   templateUrl: './schedule.html',
   styleUrl: './schedule.scss',
@@ -49,7 +51,7 @@ export class Schedule {
   private readonly optimizationService = inject(OptimizationService);
   private readonly userSession = inject(UserSessionService);
 
-  readonly displayedColumns = ['factoryId', 'nbFactories', 'resource', 'targetPerMin', 'producedPerMin', 'consumedPerMin'];
+  readonly displayedColumns = ['factoryId', 'nbFactories', 'resource', 'targetPerMin', 'netPerMin'];
 
   readonly rows = computed<ScheduleRow[]>(() => {
     const layout = this.userSession.activeLayout();
