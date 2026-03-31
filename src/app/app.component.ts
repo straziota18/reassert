@@ -42,6 +42,8 @@ interface NavItem {
 export class AppComponent implements OnInit {
   @ViewChild('sidenav') sidenav!: MatSidenav;
 
+  readonly repoUrl = 'https://github.com/straziota18/reassert';
+
   readonly title: Signal<string>;
   isDarkMode = false;
   isMobile = false;
@@ -57,6 +59,7 @@ export class AppComponent implements OnInit {
     { label: 'Factory Layout', icon: 'factory', route: '/factory-layout' },
     { label: 'Factory Inventory', icon: 'edit_document', route: '/factory-inventory' },
     { label: 'Production Schedule', icon: 'calendar_month', route: '/schedule' },
+    { label: 'Help', icon: 'help', route: '/welcome' },
   ];
 
   constructor(

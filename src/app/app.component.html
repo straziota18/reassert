@@ -13,9 +13,9 @@
     <!-- Navigation items -->
     <mat-nav-list>
       @for (item of navItems; track item.route) {
-      <a mat-list-item [routerLink]="item.route"
-        [class.active-nav-item]="isActive(item.route)">
-        <mat-icon matListItemIcon [matBadge]="nbProblems()" [matBadgeHidden]="item.route !== 'factory'">{{ item.icon }}</mat-icon>
+      <a mat-list-item [routerLink]="item.route" [class.active-nav-item]="isActive(item.route)">
+        <mat-icon matListItemIcon [matBadge]="nbProblems()" [matBadgeHidden]="item.route !== 'factory'">{{ item.icon
+          }}</mat-icon>
         <span matListItemTitle>{{ item.label }}</span>
       </a>
       }
@@ -25,11 +25,15 @@
     <!-- Dark mode toggle pinned to bottom -->
     <div class="sidenav-footer">
       <mat-divider></mat-divider>
-      <div class="dark-mode-row">
+      <div class="bottom-divider-row">
         <mat-icon>{{ isDarkMode ? 'dark_mode' : 'light_mode' }}</mat-icon>
         <span>Dark mode</span>
         <mat-slide-toggle [checked]="isDarkMode" (change)="toggleDarkMode()" color="primary"></mat-slide-toggle>
       </div>
+      <a [href]="repoUrl" target="_blank" rel="noopener" class="bottom-divider-row">
+        <img width="16" height="16" src="assets/github-icon.png">
+        View on GitHub        
+      </a>
     </div>
   </mat-sidenav>
 
