@@ -11,9 +11,15 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatDialog } from '@angular/material/dialog';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { UserSessionService } from './services/user-session-service';
+import { ObjectStoreService } from './services/object-store-service';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { MatBadgeModule } from '@angular/material/badge';
+import { EnterNameDialog } from './components/enter-name-dialog/enter-name-dialog';
+import { ItemSelectDialog } from './components/item-select-dialog/item-select-dialog';
 import * as _ from 'lodash';
 
 interface NavItem {
@@ -36,7 +42,9 @@ interface NavItem {
     MatButtonModule,
     MatDividerModule,
     MatSlideToggleModule,
-    MatBadgeModule
+    MatBadgeModule,
+    MatDialogModule,
+    MatTooltipModule,
   ]
 })
 export class AppComponent implements OnInit {
@@ -66,7 +74,9 @@ export class AppComponent implements OnInit {
     private readonly breakpointObserver: BreakpointObserver,
     private readonly router: Router,
     private readonly titleService: Title,
-    private readonly userSessionService: UserSessionService
+    private readonly userSessionService: UserSessionService,
+    private readonly objectStoreService: ObjectStoreService,
+    private readonly dialog: MatDialog,
   ) {
     this.title = computed(() => {
       const l = this.userSessionService.activeLayout();
@@ -121,5 +131,54 @@ export class AppComponent implements OnInit {
 
   isActive(route: string): boolean {
     return this.activeRoute === route;
+  }
+
+  openSaveAsDialog(): void {
+    const current = this.userSessionService.activeLayout();
+    const ref = this.dialog.open(EnterNameDialog, {
+      data: {
+        title: 'Save as',
+        placeholder: 'New layout name',
+        initialValue: current ? current.id : '',
+      },
+    });
+    ref.afterClosed().subscribe(name => {
+      if (name) {
+        this.userSessionService.saveLayoutAs(name);
+      }
+    });
+  }
+
+  openNewLayoutDialog(): void {
+    const ref = this.dialog.open(EnterNameDialog, {
+      data: {
+        title: 'New layout',
+        placeholder: 'Layout name',
+      },
+    });
+    ref.afterClosed().subscribe(name => {
+      if (name) {
+        this.userSessionService.createNewLayout(name);
+      }
+    });
+  }
+
+  openLayoutDialog(): void {
+    const ids = this.objectStoreService.listLayoutIds();
+    const ref = this.dialog.open(ItemSelectDialog, {
+      data: {
+        title: 'Open layout',
+        items: ids,
+      },
+      width: '420px',
+      height: '65vh',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+    });
+    ref.afterClosed().subscribe(result => {
+      if (result?.label) {
+        this.userSessionService.switchToLayout(result.label);
+      }
+    });
   }
 }

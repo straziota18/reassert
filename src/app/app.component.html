@@ -49,6 +49,20 @@
       <span class="toolbar-title">{{ title() }}</span>
       <span class="toolbar-spacer"></span>
 
+      <!-- Layout management buttons -->
+      <button mat-stroked-button color="secondary" (click)="openSaveAsDialog()" matTooltip="Save a copy of the current layout with a new name">
+        <mat-icon>save_as</mat-icon>
+        <span class="toolbar-btn-label">Save as</span>
+      </button>
+      <button mat-stroked-button color="secondary" (click)="openNewLayoutDialog()" matTooltip="Create a new empty layout">
+        <mat-icon>add</mat-icon>
+        <span class="toolbar-btn-label">New layout</span>
+      </button>
+      <button mat-stroked-button color="secondary" (click)="openLayoutDialog()" matTooltip="Switch to an existing layout">
+        <mat-icon>folder_open</mat-icon>
+        <span class="toolbar-btn-label">Open layout</span>
+      </button>
+
       <!-- Dark mode toggle (mobile — also shown in toolbar) -->
       @if (isMobile) {
       <button mat-icon-button (click)="toggleDarkMode()"

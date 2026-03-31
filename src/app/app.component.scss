@@ -90,6 +90,14 @@
   .toolbar-spacer {
     flex: 1 1 auto;
   }
+
+  .toolbar-btn-label {
+    margin-left: 4px;
+  }
+
+  button[mat-stroked-button] {
+    margin-left: 6px;
+  }
 }
 
 // ── Main content area ─────────────────────────────────────────

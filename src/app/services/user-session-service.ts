@@ -1,5 +1,5 @@
 import { computed, inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
-import { ObjectStoreService } from './object-store-service';
+import { deserializeLayout, ObjectStoreService, serializeLayout } from './object-store-service';
 import { OptimizationService } from './optimization-service';
 import { ActiveFactory, activeFactoryActiveRecipeSignal, Connection, createActiveFactory, Factory, FactoryCanvasNode, FactoryLayout, isActiveFactory, isModulator, isVirtualLayout, Modulator, modulatorActiveRecipeSignal, Resource, Universe, VirtualFactory, virtualFactoryActiveRecipeSignal } from './model';
 import { buildManyToOneTree, buildOneToManyTree, NodeRef } from './modulator-tree.util';
@@ -229,6 +229,41 @@ export class UserSessionService {
     this.objectStoreService.saveLayout(newLayout);
     localStorage.setItem(ACTIVE_LAYOUT_KEY, newLayout.id);
     this.activeLayout.set(newLayout);
+  }
+
+  /** Creates a deep copy of the current active layout under a new name and switches to it. */
+  async saveLayoutAs(newId: string): Promise<void> {
+    const current = this.activeLayout();
+    if (!current) return;
+    const serialized = serializeLayout(current);
+    serialized.id = newId;
+    const universe = await this.optimizationService.loadUniverse();
+    const copy = deserializeLayout(universe, serialized);
+    this.objectStoreService.saveLayout(copy);
+    localStorage.setItem(ACTIVE_LAYOUT_KEY, newId);
+    this.activeLayout.set(copy);
+  }
+
+  /** Creates a brand-new empty layout with the given name and switches to it. */
+  createNewLayout(id: string): void {
+    const newLayout: FactoryLayout = {
+      id,
+      factories: signal([]),
+      connections: signal([]),
+      targets: signal({}),
+    };
+    this.objectStoreService.saveLayout(newLayout);
+    localStorage.setItem(ACTIVE_LAYOUT_KEY, id);
+    this.activeLayout.set(newLayout);
+  }
+
+  /** Switches the active layout to the one with the given id. */
+  async switchToLayout(id: string): Promise<void> {
+    const layout = await this.objectStoreService.loadLayout(id);
+    if (layout) {
+      localStorage.setItem(ACTIVE_LAYOUT_KEY, id);
+      this.activeLayout.set(layout);
+    }
   }
 
   public updateNode(node: FactoryCanvasNode) {
