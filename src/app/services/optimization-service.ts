@@ -28,7 +28,6 @@ export class OptimizationService {
 
   constructor() {
     this.worker.onmessage = ({ data }: MessageEvent<WorkerResponse>) => {
-      console.log(data);
       this.workerResponses$.next(data);
     }
   }

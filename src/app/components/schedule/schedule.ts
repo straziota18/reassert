@@ -8,7 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ItemSelectDialog, ItemSelectDialogData, ItemSelectDialogResult } from '../item-select-dialog/item-select-dialog';
-import { ActiveFactory, FactoryCanvasNode, Resource, VirtualFactory } from '../../services/model';
+import { ActiveFactory, FactoryCanvasNode, isActiveFactory, Resource, VirtualFactory } from '../../services/model';
 import { OptimizationService } from '../../services/optimization-service';
 import { UserSessionService } from '../../services/user-session-service';
 import * as _ from 'lodash';
@@ -35,6 +35,8 @@ const createScheduleRow: (resource: Resource) => ScheduleRow = (resource: Resour
     sampleFactoryNode: null,
   }
 }
+
+// ---------------------------------------------------------------------------
 
 @Component({
   selector: 'app-schedule',
@@ -144,8 +146,23 @@ export class Schedule {
     return Object.values(rows);
   });
 
-  onAddMissingFactories(row: ScheduleRow) {
-    // TODO: implement add-missing-factories logic
+  onAddMissingFactories(row: ScheduleRow): void {
+    this.optimizationService.loadUniverse().then(universe => {
+      const activeLayout = this.userSession.activeLayout();
+      if (!activeLayout) return;
+
+      const problems = this.userSession.factoryProblems();
+
+      // Collect the factory nodes for this row that actually have a problem
+      const problematicNodes = activeLayout.factories().filter(n =>
+        isActiveFactory(n) &&
+        (n.factory as ActiveFactory).activeRecipe()?.id === row.resource &&
+        !!problems[n.id],
+      );
+      if (!problematicNodes.length) return;
+
+      this.userSession.fillMissingFactories(universe, problematicNodes);
+    });
   }
 
   onAddFactory(row: ScheduleRow) {

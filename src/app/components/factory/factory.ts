@@ -352,8 +352,14 @@ export class Factory implements AfterViewInit {
     });
   }
 
-  reorganize() {
-    this.optimizationService.reorganizeNodes(this.userSessionService.activeLayout()).then(newLayout => {
+  reorganize(): void {
+    this.optimizationService.loadUniverse().then(universe => {
+      // Step 1: create all missing supplier factories and connect them
+      this.userSessionService.fillAllMissingFactories(universe);
+
+      // Step 2: reposition every node in the DAG
+      return this.optimizationService.reorganizeNodes(this.userSessionService.activeLayout());
+    }).then(newLayout => {
       this.userSessionService.applyOptimizedLayout(newLayout);
     });
   }

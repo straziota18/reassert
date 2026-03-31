@@ -13,6 +13,8 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { UserSessionService } from './services/user-session-service';
 import { toObservable } from '@angular/core/rxjs-interop';
+import { MatBadgeModule } from '@angular/material/badge';
+import * as _ from 'lodash';
 
 interface NavItem {
   label: string;
@@ -34,6 +36,7 @@ interface NavItem {
     MatButtonModule,
     MatDividerModule,
     MatSlideToggleModule,
+    MatBadgeModule
   ]
 })
 export class AppComponent implements OnInit {
@@ -45,6 +48,10 @@ export class AppComponent implements OnInit {
   sidenavMode: 'over' | 'side' = 'side';
   sidenavOpened = true;
   activeRoute = '';
+
+  readonly nbProblems = computed(() => {
+    return _.size(this.userSessionService.factoryProblems());
+  });
 
   navItems: NavItem[] = [
     { label: 'Factory Layout', icon: 'factory', route: '/factory-layout' },
@@ -67,7 +74,7 @@ export class AppComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void {    
+  ngOnInit(): void {
     // Responsive sidenav behaviour
     this.breakpointObserver.observe([Breakpoints.Handset])
       .subscribe(result => {

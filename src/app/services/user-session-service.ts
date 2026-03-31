@@ -1,7 +1,8 @@
 import { computed, inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { ObjectStoreService } from './object-store-service';
 import { OptimizationService } from './optimization-service';
-import { ActiveFactory, activeFactoryActiveRecipeSignal, Connection, createActiveFactory, Factory, FactoryCanvasNode, FactoryLayout, isActiveFactory, isModulator, isVirtualLayout, Modulator, modulatorActiveRecipeSignal, Resource, VirtualFactory, virtualFactoryActiveRecipeSignal } from './model';
+import { ActiveFactory, activeFactoryActiveRecipeSignal, Connection, createActiveFactory, Factory, FactoryCanvasNode, FactoryLayout, isActiveFactory, isModulator, isVirtualLayout, Modulator, modulatorActiveRecipeSignal, Resource, Universe, VirtualFactory, virtualFactoryActiveRecipeSignal } from './model';
+import { buildManyToOneTree, buildOneToManyTree, NodeRef } from './modulator-tree.util';
 import * as _ from 'lodash';
 
 const ACTIVE_LAYOUT_KEY = 'reassert:active-layout-id';
@@ -157,14 +158,14 @@ export class UserSessionService {
       const incomingConnections = connections.filter(c => c.toId === node.id);
 
       // Check 2: Missing inputs — verify the required resource is actually being injected
-      const missingCount = requiredInputs.filter((req, idx) => {
+      const missingInputs = requiredInputs.filter((req, idx) => {
         const connsForSlot = incomingConnections.filter(c => c.toInputId === idx);
         if (connsForSlot.length === 0) return true;
         return !connsForSlot.some(conn => getOutputResourceIds(conn.fromId, conn.fromOutputId).has(req.input.id));
-      }).length;
+      });
 
-      if (missingCount > 0) {
-        result[node.id] = `Missing ${missingCount}/${requiredInputs.length} inputs`;
+      if (missingInputs.length > 0) {
+        result[node.id] = missingInputs.length === 1 ? `Missing ${missingInputs[0].input.id}` : `Missing ${missingInputs.length}/${requiredInputs.length} inputs`;
         continue;
       }
 
@@ -375,6 +376,243 @@ export class UserSessionService {
     );
     activeLayout.factories.update(nodes => [...nodes, newNode]);
     this.objectStoreService.saveLayout(activeLayout);
+  }
+
+  /**
+   * Creates a new {@link FactoryCanvasNode} for an active factory **without** adding it to any
+   * layout.  Useful when building a batch of nodes to be inserted atomically via
+   * {@link bulkAddNodesAndConnections}.
+   */
+  public makeFactoryNode(
+    layout: FactoryLayout,
+    factory: Factory,
+    activeRecipe: Resource | null,
+    x: number,
+    y: number,
+  ): FactoryCanvasNode {
+    return this.createNode(
+      layout,
+      () => {
+        const af = createActiveFactory(factory, activeRecipe);
+        af.activeProductionVariant.set(null);
+        return af;
+      },
+      (_layout, f, _id) => activeFactoryActiveRecipeSignal(f as ActiveFactory),
+      x,
+      y,
+    );
+  }
+
+  /**
+   * Creates a new {@link FactoryCanvasNode} for a modulator **without** adding it to any layout.
+   * Useful when building a batch of nodes to be inserted atomically via
+   * {@link bulkAddNodesAndConnections}.
+   */
+  public makeModulatorNode(
+    layout: FactoryLayout,
+    modulator: Modulator,
+    x: number,
+    y: number,
+  ): FactoryCanvasNode {
+    return this.createNode(
+      layout,
+      () => ({ id: modulator.id, nbInputs: modulator.nbInputs, nbOutputs: modulator.nbOutputs } satisfies Modulator),
+      (l, _f, id) => modulatorActiveRecipeSignal(l, id),
+      x,
+      y,
+    );
+  }
+
+  /**
+   * Atomically inserts a set of pre-built nodes and connections into the active layout and
+   * persists the result.
+   */
+  public bulkAddNodesAndConnections(nodes: FactoryCanvasNode[], connections: Connection[]): void {
+    const activeLayout = this.activeLayout();
+    if (!activeLayout) return;
+
+    if (nodes.length > 0) {
+      activeLayout.factories.update(existing => [...existing, ...nodes]);
+    }
+    if (connections.length > 0) {
+      activeLayout.connections.update(existing => [...existing, ...connections]);
+    }
+    this.objectStoreService.saveLayout(activeLayout);
+  }
+
+  /**
+   * Resolves all missing / insufficient inputs for a specific batch of consumer nodes that share
+   * the same active recipe.  Supplier factories are created (or free existing ones reused),
+   * wired through minimal Many-to-1 and 1-to-Many modulator chains, and committed in a single
+   * atomic batch.  The process is **recursive**: newly created suppliers whose own recipe
+   * requires inputs are queued and resolved in subsequent worklist passes (up to `MAX_DEPTH`
+   * levels deep).
+   *
+   * @param universe   The loaded game universe (factories, resources, modulators).
+   * @param initialConsumers  The factory nodes to start from.  Must all share the same recipe.
+   */
+  public fillMissingFactories(universe: Universe, initialConsumers: FactoryCanvasNode[]): void {
+    const activeLayout = this.activeLayout();
+    if (!activeLayout || !initialConsumers.length) return;
+
+    const layoutNodes = activeLayout.factories();
+    const layoutConns = activeLayout.connections();
+
+    const nodesToAdd: FactoryCanvasNode[] = [];
+    const connsToAdd: Connection[]        = [];
+
+    // Partition available modulators
+    const manyToOneMods = Object.values(universe.modulators)
+      .filter(m => m.nbOutputs === 1 && m.nbInputs > 1)
+      .sort((a, b) => b.nbInputs - a.nbInputs);
+    const oneToManyMods = Object.values(universe.modulators)
+      .filter(m => m.nbInputs === 1 && m.nbOutputs > 1)
+      .sort((a, b) => b.nbOutputs - a.nbOutputs);
+
+    const makeModNode = (mod: Modulator, x: number, y: number): FactoryCanvasNode =>
+      this.makeModulatorNode(activeLayout, mod, x, y);
+
+    // Reference position: centroid of the initial consumer nodes
+    const avgX = _.meanBy(initialConsumers, (n: FactoryCanvasNode) => n.x);
+    const avgY = _.meanBy(initialConsumers, (n: FactoryCanvasNode) => n.y);
+
+    interface WorkItem { consumers: FactoryCanvasNode[]; depth: number; }
+    const worklist: WorkItem[] = [{ consumers: initialConsumers, depth: 0 }];
+    const MAX_DEPTH = 15;
+
+    while (worklist.length > 0) {
+      const { consumers, depth } = worklist.shift()!;
+      if (!consumers.length || depth > MAX_DEPTH) continue;
+
+      const recipe = (consumers[0].factory as ActiveFactory).activeRecipe();
+      if (!recipe || recipe.requires.length === 0) continue;
+
+      const cyclesPerMin  = 60 / recipe.productionCycle.seconds;
+      const depthOffsetX  = depth * 700;
+      const supplierBaseX = avgX - 660 - depthOffsetX;
+      const mergeBaseX    = avgX - 440 - depthOffsetX;
+      const splitBaseX    = avgX - 220 - depthOffsetX;
+
+      for (let inputIdx = 0; inputIdx < recipe.requires.length; inputIdx++) {
+        const req        = recipe.requires[inputIdx];
+        const inputRes   = req.input;
+        const demandEach = req.amountPerCycle * cyclesPerMin;
+
+        // Include newly planned connections so we don't double-connect
+        const effectiveConns = [...layoutConns, ...connsToAdd];
+
+        // Which consumers still have no connection on this input slot?
+        const consumersNeedingInput = consumers.filter(c =>
+          !effectiveConns.some(conn => conn.toId === c.id && conn.toInputId === inputIdx),
+        );
+        if (!consumersNeedingInput.length) continue;
+
+        const totalDemand        = consumersNeedingInput.length * demandEach;
+        const supplyPerFactory   = (inputRes.productionCycle.nbUnits * 60) / inputRes.productionCycle.seconds;
+        const numSuppliersNeeded = Math.ceil(totalDemand / supplyPerFactory);
+
+        // Reuse free existing / planned supplier nodes before creating new ones
+        const allKnownNodes = [...layoutNodes, ...nodesToAdd];
+        const freeSuppliers = allKnownNodes.filter(n =>
+          isActiveFactory(n) &&
+          (n.factory as ActiveFactory).activeRecipe()?.id === inputRes.id &&
+          !effectiveConns.some(c => c.fromId === n.id),
+        );
+        const existingToUse   = freeSuppliers.slice(0, numSuppliersNeeded);
+        const numNewSuppliers = Math.max(0, numSuppliersNeeded - existingToUse.length);
+
+        const supplierRefs: NodeRef[] = existingToUse.map(n => ({ node: n, outputId: 0 }));
+
+        // Vertical band per input index so multiple required inputs don't overlap
+        const bandY = avgY + inputIdx * 360;
+
+        // Create new supplier factory nodes
+        const newSupplierNodes: FactoryCanvasNode[] = [];
+        for (let i = 0; i < numNewSuppliers; i++) {
+          const suppY    = bandY - ((numNewSuppliers - 1) * 60) + i * 120;
+          const suppNode = this.makeFactoryNode(
+            activeLayout, inputRes.createdIn, inputRes, supplierBaseX, suppY,
+          );
+          nodesToAdd.push(suppNode);
+          newSupplierNodes.push(suppNode);
+          supplierRefs.push({ node: suppNode, outputId: 0 });
+        }
+
+        // Queue newly created suppliers for their own input resolution
+        if (newSupplierNodes.length > 0 && inputRes.requires.length > 0) {
+          worklist.push({ consumers: newSupplierNodes, depth: depth + 1 });
+        }
+
+        const N = supplierRefs.length;
+        const M = consumersNeedingInput.length;
+
+        // ── Many-to-1 section ────────────────────────────────────────────────
+        let mergedRef: NodeRef;
+        if (N === 1) {
+          mergedRef = supplierRefs[0];
+        } else {
+          const r = buildManyToOneTree(supplierRefs, manyToOneMods, makeModNode, mergeBaseX, bandY);
+          nodesToAdd.push(...r.nodes);
+          connsToAdd.push(...r.connections);
+          mergedRef = r.output;
+        }
+
+        // ── 1-to-Many section ────────────────────────────────────────────────
+        if (M === 1) {
+          connsToAdd.push({
+            id:           crypto.randomUUID(),
+            fromId:       mergedRef.node.id,
+            fromOutputId: mergedRef.outputId,
+            toId:         consumersNeedingInput[0].id,
+            toInputId:    inputIdx,
+          });
+        } else {
+          const r = buildOneToManyTree(mergedRef, M, oneToManyMods, makeModNode, splitBaseX, bandY);
+          nodesToAdd.push(...r.nodes);
+          connsToAdd.push(...r.connections);
+          for (let c = 0; c < M; c++) {
+            connsToAdd.push({
+              id:           crypto.randomUUID(),
+              fromId:       r.outputs[c].node.id,
+              fromOutputId: r.outputs[c].outputId,
+              toId:         consumersNeedingInput[c].id,
+              toInputId:    inputIdx,
+            });
+          }
+        }
+      }
+    }
+
+    if (nodesToAdd.length || connsToAdd.length) {
+      this.bulkAddNodesAndConnections(nodesToAdd, connsToAdd);
+    }
+  }
+
+  /**
+   * Convenience wrapper: resolves missing inputs for **every** factory node in the active layout
+   * that currently has a problem.  Nodes are grouped by their recipe so each group uses its own
+   * spatial centroid when placing new suppliers.
+   */
+  public fillAllMissingFactories(universe: Universe): void {
+    const activeLayout = this.activeLayout();
+    if (!activeLayout) return;
+
+    const problems = this.factoryProblems();
+    const problematicNodes = activeLayout.factories()
+      .filter(n => isActiveFactory(n) && !!problems[n.id]);
+
+    if (!problematicNodes.length) return;
+
+    // Group by recipe ID so each group gets its own centroid reference when placing suppliers
+    const byRecipe = _.groupBy(
+      problematicNodes,
+      n => (n.factory as ActiveFactory).activeRecipe()?.id ?? '',
+    );
+
+    for (const [recipeId, nodes] of _.toPairs(byRecipe)) {
+      if (!recipeId) continue;
+      this.fillMissingFactories(universe, nodes);
+    }
   }
 
   /**
