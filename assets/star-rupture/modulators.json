@@ -1,0 +1,22 @@
+[
+    {
+        "id": "3 to 1",
+        "nbInputs": 3,
+        "nbOutputs": 1
+    },
+    {
+        "id": "1 to 3",
+        "nbInputs": 1,
+        "nbOutputs": 3
+    },
+    {
+        "id": "5 to 1",
+        "nbInputs": 5,
+        "nbOutputs": 1
+    },
+    {
+        "id": "1 to 5",
+        "nbInputs": 1,
+        "nbOutputs": 5
+    }
+]
